@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">ChatApp</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="user_name">User Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="required">*required</string>
+    <string name="register">Register</string>
+    <string name="login">Login</string>
+    <string name="if_you_have_an_account">If you have an account?</string>
+    <string name="you_have_an_account">You have an account?</string>
+    <string name="my_profile">My profile</string>
+    <string name="about">About:</string>
+    <string name="description">description</string>
+    <string name="profilephoto">https://t4.ftcdn.net/jpg/00/65/77/27/360_F_65772719_A1UV5kLi5nCEWI0BNLLiFaBPEkUbv5Fv.jpg</string>
+</resources>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:gravity="center"
+    android:orientation="vertical">
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="horizontal">
+       <de.hdodenhof.circleimageview.CircleImageView
+           android:id="@+id/profile_image"
+           android:layout_width="@dimen/_55sdp"
+           android:layout_height="@dimen/_55sdp"
+           android:layout_gravity="right"
+           android:padding="@dimen/_6sdp"
+           android:src="@drawable/personalphoto" />
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:gravity="center"
+           android:padding="@dimen/_5sdp"
+           android:layout_gravity="center"
+           android:orientation="vertical">
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_gravity="left"
+               android:weightSum="3"
+               android:orientation="horizontal">
+           <TextView
+               android:id="@+id/username"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:textSize="@dimen/_15sdp"
+               android:layout_weight="2.5"
+               android:fontFamily="@font/bold"
+               android:textColor="#4527A0"
+                   android:gravity="left"
+               android:text="Eman Nasser" />
+               <TextView
+                   android:id="@+id/counterMsg"
+                   android:layout_width="@dimen/_50sdp"
+                   android:layout_height="@dimen/_25sdp"
+                   android:textSize="@dimen/_12sdp"
+                   android:visibility="invisible"
+                   android:layout_weight="0.5"
+                   android:fontFamily="@font/bold"
+                   android:textColor="@color/white"
+                   android:layout_marginLeft="@dimen/_110sdp"
+                   android:gravity="center"
+                   android:background="@drawable/circle"
+                   android:layout_gravity="right"
+                   android:text="0" />
+
+           </LinearLayout>
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:weightSum="3"
+               android:orientation="horizontal">
+           <TextView
+               android:id="@+id/msg"
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:textSize="@dimen/_10sdp"
+               android:layout_weight="1"
+               android:textColor="#978CB8"
+               android:textAlignment="textStart"
+               android:fontFamily="@font/bold"
+               android:text="lastmsg" />
+               <TextView
+                   android:id="@+id/time"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:textSize="@dimen/_13sdp"
+                   android:textColor="#A454D5"
+                   android:layout_weight="2"
+                   android:textStyle="bold"
+                   android:gravity="right"
+                   android:text="lastmsg" />
+           </LinearLayout>
+       </LinearLayout>
+   </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#4527A0"
+        />
+</LinearLayout>

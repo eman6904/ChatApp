@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigate"
+    app:startDestination="@id/signUp">
+
+    <fragment
+        android:id="@+id/users"
+        android:name="com.example.chatapp.ui.userInterface.ui.Users"
+        android:label="fragment_face"
+        tools:layout="@layout/users" >
+        <action
+            android:id="@+id/action_users_to_profile3"
+            app:destination="@id/profile3" />
+        <action
+            android:id="@+id/action_users_to_chat"
+            app:destination="@id/chat" />
+    </fragment>
+    <fragment
+        android:id="@+id/signIn"
+        android:name="com.example.chatapp.ui.userInterface.ui.SignIn"
+        android:label="SignIn" >
+        <action
+            android:id="@+id/action_signIn_to_users"
+            app:destination="@id/users" />
+    </fragment>
+    <fragment
+        android:id="@+id/signUp"
+        android:name="com.example.chatapp.ui.userInterface.ui.SignUp"
+        android:label="fragment_sign_up"
+        tools:layout="@layout/fragment_sign_up" >
+        <action
+            android:id="@+id/action_signUp_to_signIn"
+            app:destination="@id/signIn" />
+    </fragment>
+    <fragment
+        android:id="@+id/profile3"
+        android:name="com.example.chatapp.ui.userInterface.ui.Profile"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/chat"
+        android:name="com.example.chatapp.ui.userInterface.ui.Chat"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" >
+        <action
+            android:id="@+id/action_chat_to_users"
+            app:destination="@id/users" />
+    </fragment>
+</navigation>

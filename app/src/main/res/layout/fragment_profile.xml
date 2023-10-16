@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.userInterface.ui.Profile"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#6A1B9A">
+        <ImageView
+            android:id="@+id/arrow_back"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_gravity="center_vertical"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:src="@drawable/arr_back2_foreground" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textColor="@color/white"
+            android:fontFamily="@font/bold"
+            android:padding="@dimen/_10sdp"
+            android:textSize="@dimen/_20sdp"
+            android:text="@string/my_profile" />
+    </FrameLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profilephoto"
+            android:layout_width="@dimen/_250sdp"
+            android:layout_height="@dimen/_200sdp"
+            android:padding="@dimen/_5sdp"
+            android:src="@drawable/personalphoto"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.141" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/_5sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.679">
+
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bold"
+                android:text="Name:"
+                android:textColor="#7E567E"
+                android:textSize="@dimen/_15sdp">
+
+            </TextView>
+
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bold"
+                android:text="@string/user_name"
+                android:textColor="#4527A0"
+                android:textSize="@dimen/_18sdp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/_5sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.869">
+
+            <TextView
+                android:id="@+id/about"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bold"
+                android:text="@string/about"
+                android:textColor="#7E567E"
+                android:textSize="@dimen/_15sdp">
+
+            </TextView>
+
+            <TextView
+                android:id="@+id/description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bold"
+                android:text="what do you want to say"
+                android:textColor="#4527A0"
+                android:textSize="@dimen/_15sdp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/update_photo"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_50sdp"
+            android:src="@drawable/camera2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.736"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.415" />
+
+        <ImageView
+            android:id="@+id/updat_username"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/create"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.929"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.593" />
+
+        <ImageView
+            android:id="@+id/updat_desc"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/create"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.956"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.775" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

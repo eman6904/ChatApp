@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/counter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="70"
+        android:gravity="center"
+        android:textSize="@dimen/_18sdp"
+        android:background="#6A1B9A"
+        android:textColor="@color/white"
+        tools:layout_editor_absoluteX="156dp"
+        tools:layout_editor_absoluteY="108dp" />
+    <EditText
+        android:id="@+id/edtext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:gravity="center"
+        android:textSize="@dimen/_15sdp"
+        android:fontFamily="@font/bold"
+        android:padding="@dimen/_10sdp"
+        tools:layout_editor_absoluteX="134dp"
+        tools:layout_editor_absoluteY="186dp" />
+    <ImageView
+        android:id="@+id/set"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="@dimen/_20sdp"
+        app:srcCompat="@drawable/butt2"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="148dp" />
+</LinearLayout>
