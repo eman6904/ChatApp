@@ -36,15 +36,17 @@ class SignUp : Fragment(R.layout.fragment_sign_up) {
         }
         binding.loginTest.setOnClickListener()
         {
-            navController.navigate(R.id.action_signUp_to_signIn)
+            var bundle= bundleOf("userName" to " ","userCase" to "Login")
+            navController.navigate(R.id.action_signUp_to_signIn,bundle)
         }
     }
     //******************************************************************************
     private fun signUp() {
         //for register with email and password
-        if (binding.email.text.isNotEmpty() && binding.password.text.isNotEmpty()) {
+        if (binding.email.text.isNotEmpty() && binding.password.text.isNotEmpty()&&binding.username.text.isNotEmpty()) {
             binding.reEmail.isVisible = false
             binding.rePassword.isVisible = false
+            binding.reusername.isVisible = false
             binding.progressBar.isVisible = true
             Auth?.createUserWithEmailAndPassword(
                 binding.email.text.toString(),
@@ -72,6 +74,8 @@ class SignUp : Fragment(R.layout.fragment_sign_up) {
                 binding.reEmail.isVisible = true
             if (binding.password.text.isEmpty())
                 binding.rePassword.isVisible = true
+            if (binding.username.text.isEmpty())
+                binding.reusername.isVisible = true
         }
     }
 
@@ -84,7 +88,8 @@ class SignUp : Fragment(R.layout.fragment_sign_up) {
                 Toast.makeText(requireContext(), "Successful", Toast.LENGTH_LONG)
                     .show()
                 //move to login page to verify email
-                navController.navigate(R.id.action_signUp_to_signIn)
+                var bundle= bundleOf("userName" to binding.username.text.toString(),"userCase" to "Register")
+                navController.navigate(R.id.action_signUp_to_signIn,bundle)
             } else {
                 //there is problem in sending
                 Toast.makeText(

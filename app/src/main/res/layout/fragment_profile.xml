@@ -107,7 +107,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/bold"
-                android:text="what do you want to say"
+                android:text=""
                 android:textColor="#4527A0"
                 android:textSize="@dimen/_15sdp" />
         </LinearLayout>

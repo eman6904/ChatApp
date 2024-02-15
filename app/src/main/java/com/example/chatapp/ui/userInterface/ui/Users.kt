@@ -24,7 +24,6 @@ class Users : Fragment(R.layout.users) {
     private lateinit var navController: NavController
     var obj: DatabaseReference? = null
     var list=ArrayList<UserItems>()
-    var username:String=""
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = UsersBinding.bind(view)
@@ -34,9 +33,7 @@ class Users : Fragment(R.layout.users) {
         activity.supportActionBar?.hide()
 
         binding.progressBar.isVisible = true
-        username= arguments?.getString("username").toString()
 
-        addUser()
         binding.arrowBack.setOnClickListener()
         {
             navController.navigate(R.id.action_users_to_profile3)
@@ -45,35 +42,27 @@ class Users : Fragment(R.layout.users) {
     }
 
     //************************************************************
-    fun addUser() {
+    override fun onStart() {
+        super.onStart()
         obj = FirebaseDatabase.getInstance().getReference("User")
         //current user is the person who is currently registered or made login
-        var currentUser = FirebaseAuth.getInstance()?.currentUser!!
+        var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
 //            //to create new id
 //            var id = obj!!.push().key
-        var id = currentUser.uid
-       var user=UserItems(id,username,"","","","")
         obj?.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                for (data in snapshot.children) {
-                    val userItem = data.getValue(UserItems::class.java)
-                    if(userItem?.id==id)
-                        user=userItem
-                }
-                obj?.child(id)?.setValue(user)
                 list.clear()
                 for (data in snapshot.children) {
                     val user = data.getValue(UserItems::class.java)
-                    if(!user!!.id.equals(id))
-                     list.add(user)
+                    if(!user!!.id.equals(currentUserId))
+                        list.add(user)
                     else{
-                        Glide.with(requireContext()).asBitmap().load(Uri.parse(user!!.profilePhoto))
+                        Glide.with(view!!.context).asBitmap().load(Uri.parse(user!!.profilePhoto))
                             .placeholder(R.drawable.personalphotojpg).into(binding.profileImage)
                     }
                 }
-
                 binding.progressBar.isVisible = false
-                val adapter = UserAdapter(requireContext(),list)
+                val adapter = UserAdapter(list)
                 binding.recycler.layoutManager = LinearLayoutManager(requireContext())
                 binding.recycler.adapter = adapter
 

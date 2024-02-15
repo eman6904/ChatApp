@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <EditText
+        android:id="@+id/edMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textSize="@dimen/_15sdp"
+        android:fontFamily="@font/bold"
+        android:padding="@dimen/_15sdp"
+        tools:layout_editor_absoluteX="134dp"
+        tools:layout_editor_absoluteY="186dp">
+
+    </EditText>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center">
+    <ImageView
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/delete"
+        android:layout_marginEnd="@dimen/_20sdp"
+        tools:layout_editor_absoluteX="45dp"
+        tools:layout_editor_absoluteY="125dp" />
+    <ImageView
+        android:id="@+id/update"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/update"
+        tools:layout_editor_absoluteX="229dp"
+        tools:layout_editor_absoluteY="222dp" />
+</LinearLayout>
+</LinearLayout>

@@ -4,51 +4,60 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="right"
-    android:padding="@dimen/_5sdp"
+    android:padding="@dimen/_3sdp"
     android:layout_gravity="right"
     android:orientation="horizontal">
-    <FrameLayout
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="@dimen/_5sdp"
+        android:layout_marginStart="@dimen/_40sdp"
         android:layout_marginTop="@dimen/_10sdp"
         android:background="@drawable/msg_right">
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/msg"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:text="TextView"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/seen"
+                android:layout_width="@dimen/_10sdp"
+                android:layout_height="@dimen/_10sdp"
+                android:layout_gravity="left"
+                android:src="@drawable/seen">
+            </ImageView>
             <TextView
-                android:id="@+id/msg"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="text view"
-                android:gravity="left"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                tools:layout_editor_absoluteX="96dp"
-                tools:layout_editor_absoluteY="88dp"
-                />
-            <TextView
-                android:id="@+id/time"
+                android:id="@+id/action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
-                android:gravity="right"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:textColor="#F4F2EF"
+                android:layout_gravity="left"
+                android:textColor="@color/white"
                 android:padding="@dimen/_3sdp"
-                android:textStyle="bold"
-                android:textSize="@dimen/_7sdp"
-                tools:layout_editor_absoluteX="96dp"
-                tools:layout_editor_absoluteY="88dp">
+                android:text=""
+                android:textSize="@dimen/_6sdp"
+                android:src="@drawable/seen">
             </TextView>
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:gravity="right"
+            android:layout_gravity="right"
+            android:textColor="#FBFAFB"
+            android:textStyle="bold"
+            android:textSize="@dimen/_7sdp"
+            tools:layout_editor_absoluteX="96dp"
+            tools:layout_editor_absoluteY="88dp">
+        </TextView>
         </LinearLayout>
-    </FrameLayout>
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/pr_imge"
-        android:layout_width="@dimen/_35sdp"
-        android:layout_height="@dimen/_35sdp"
-        android:layout_gravity="right"
-        android:padding="@dimen/_3sdp"
-        android:src="@drawable/personalphoto" />
+    </LinearLayout>
+
 </LinearLayout>

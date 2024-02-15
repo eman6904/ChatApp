@@ -40,7 +40,7 @@
                    android:gravity="left"
                android:text="Eman Nasser" />
                <TextView
-                   android:id="@+id/counterMsg"
+                   android:id="@+id/msgCounter"
                    android:layout_width="@dimen/_50sdp"
                    android:layout_height="@dimen/_25sdp"
                    android:textSize="@dimen/_12sdp"
@@ -63,13 +63,13 @@
            <TextView
                android:id="@+id/msg"
                android:layout_width="match_parent"
-               android:layout_height="wrap_content"
+               android:layout_height="@dimen/_20sdp"
                android:textSize="@dimen/_10sdp"
                android:layout_weight="1"
                android:textColor="#978CB8"
                android:textAlignment="textStart"
                android:fontFamily="@font/bold"
-               android:text="lastmsg" />
+               android:text=" " />
                <TextView
                    android:id="@+id/time"
                    android:layout_width="match_parent"
@@ -79,7 +79,7 @@
                    android:layout_weight="2"
                    android:textStyle="bold"
                    android:gravity="right"
-                   android:text="lastmsg" />
+                   android:text=" " />
            </LinearLayout>
        </LinearLayout>
    </LinearLayout>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/like"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👍"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15sdp"
+        android:textStyle="bold"
+        android:padding="@dimen/_5sdp" />
+    <TextView
+        android:id="@+id/love"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="❤"
+        android:padding="@dimen/_5sdp"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15sdp"
+        tools:layout_editor_absoluteX="166dp"
+        tools:layout_editor_absoluteY="185dp" />
+    <TextView
+        android:id="@+id/waw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="😲"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15sdp"
+        android:padding="@dimen/_5sdp"
+        tools:layout_editor_absoluteX="96dp"
+        tools:layout_editor_absoluteY="188dp">
+    </TextView>
+    <TextView
+        android:id="@+id/haha"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="😁"
+        android:padding="@dimen/_5sdp"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15sdp"
+        tools:layout_editor_absoluteX="126dp"
+        tools:layout_editor_absoluteY="179dp" />
+    <TextView
+        android:id="@+id/sad"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="😥"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_15sdp"
+        android:padding="@dimen/_5sdp"
+        tools:layout_editor_absoluteX="96dp"
+        tools:layout_editor_absoluteY="188dp" />
+</LinearLayout>

@@ -47,6 +47,9 @@ class Profile : Fragment(R.layout.fragment_profile) {
         val activity = activity as MainActivity
         activity.supportActionBar?.hide()
 
+        binding.arrowBack.setOnClickListener(){
+            navController.navigate(R.id.action_profile3_to_users)
+        }
         storage = FirebaseStorage.getInstance().reference
         var currentUser = FirebaseAuth.getInstance()?.currentUser!!
         var id = currentUser.uid

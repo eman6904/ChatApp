@@ -1,10 +1,11 @@
 package com.example.chatapp.ui.userInterface.ui
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
-import android.widget.AdapterView
-import android.widget.Toast
+import android.widget.*
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -20,6 +21,8 @@ import com.example.chatapp.ui.userInterface.model.UserItems
 import com.example.chatapp.ui.userInterface.ui.MainActivity.Companion.usersMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import java.util.*
 
 class Chat : Fragment(R.layout.fragment_chat) {
@@ -30,16 +33,128 @@ class Chat : Fragment(R.layout.fragment_chat) {
     var senderId:String=""
     var receiverId:String=""
     var myImage:String=""
+    var idMsg:String=""
     var chatList=ArrayList<ChatModel>()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChatBinding.bind(view)
         navController = Navigation.findNavController(view)
-
         val activity = activity as MainActivity
         activity.supportActionBar?.hide()
+        objChat = FirebaseDatabase.getInstance().getReference("Chat")
+       /////////////////////////////////////////////////////////////////////////////////
+        //for react with message
+        binding.listview.onItemClickListener=object :AdapterView.OnItemClickListener{
+            override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
 
+                val alertbuilder2 = AlertDialog.Builder(requireContext())
+                val view2 = layoutInflater.inflate(R.layout.interaction, null)
+                alertbuilder2.setView(view2)
+                val alertDialog2 = alertbuilder2.create()
+                alertDialog2.show()
 
+                var like=view2.findViewById<TextView>(R.id.like)
+                var love=view2.findViewById<TextView>(R.id.love)
+                var waw=view2.findViewById<TextView>(R.id.waw)
+                var haha=view2.findViewById<TextView>(R.id.haha)
+                var sad=view2.findViewById<TextView>(R.id.sad)
+
+                var message=chatList.get(position)
+                var react=""
+                like.setOnClickListener()
+                {
+                    react=like.text.toString()
+                    if(message.action==react)
+                        message.action=""
+                    else
+                        message.action=react
+                    objChat?.child(message.idMsg)?.setValue(message)
+                    alertDialog2.dismiss()
+                }
+                love.setOnClickListener()
+                {
+                    react=love.text.toString()
+                    if(message.action==react)
+                        message.action=""
+                    else
+                        message.action=react
+                    objChat?.child(message.idMsg)?.setValue(message)
+                    alertDialog2.dismiss()
+                }
+                waw.setOnClickListener()
+                {
+                    react=waw.text.toString()
+                    if(message.action==react)
+                        message.action=""
+                    else
+                        message.action=react
+                    objChat?.child(message.idMsg)?.setValue(message)
+                    alertDialog2.dismiss()
+                }
+                haha.setOnClickListener()
+                {
+                    react=haha.text.toString()
+                    if(message.action==react)
+                        message.action=""
+                    else
+                        message.action=react
+                    objChat?.child(message.idMsg)?.setValue(message)
+                    alertDialog2.dismiss()
+                }
+                sad.setOnClickListener()
+                {
+                    react=sad.text.toString()
+                    if(message.action==react)
+                        message.action=""
+                    else
+                        message.action=react
+                    Log.d("message",message.action)
+                    objChat?.child(message.idMsg)?.setValue(message)
+                    alertDialog2.dismiss()
+                }
+            }
+
+        }
+        //////////////////////////////////////////////////////////////////////////////////
+        //for delete or update msg
+        binding.listview.onItemLongClickListener=object :AdapterView.OnItemLongClickListener{
+            override fun onItemLongClick(
+                p0: AdapterView<*>?,
+                p1: View?,
+                position: Int,
+                p3: Long
+            ): Boolean {
+               if(chatList[position].senderId==senderId)
+               {
+                   val alertbuilder = AlertDialog.Builder(requireContext())
+                   val view = layoutInflater.inflate(R.layout.about_message, null)
+                   alertbuilder.setView(view)
+                   val alertDialog = alertbuilder.create()
+                   alertDialog.show()
+
+                   val delete = view.findViewById<ImageView>(R.id.delete)
+                   val update = view.findViewById<ImageView>(R.id.update)
+                   val edMsg = view.findViewById<EditText>(R.id.edMsg)
+
+                   var message=chatList.get(position)
+                   edMsg.setText(message.msg)
+
+                   update.setOnClickListener()
+                   {
+                       message.msg=edMsg.text.toString()
+                       objChat?.child(message.idMsg)?.setValue(message)
+                       alertDialog.dismiss()
+                   }
+                   delete.setOnClickListener(){
+                       objChat?.child(message.idMsg)?.removeValue()
+                       alertDialog.dismiss()
+                   }
+               }
+                return false
+            }
+
+        }
+       ///////////////////////////////////////////////////////////////////////////////////
         binding.arrowBack.setOnClickListener(){
             navController.navigate(R.id.action_chat_to_users)
         }
@@ -58,26 +173,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
             }
         })
         ////////////////////////////////////////////////////////////////////////////////////
-        objChat=FirebaseDatabase.getInstance().getReference("Chat")
         senderId=FirebaseAuth.getInstance()?.currentUser!!.uid
         getMyImage()
-        binding.progressBar.isVisible=true
-        readMessage()
         binding.sendmMsg.setOnClickListener()
         {
             if(binding.edtext.text.isEmpty())
                 Toast.makeText(requireContext(),"Message is empty",Toast.LENGTH_LONG).show()
             else {
-
-                //this way is not correct
-//                if(usersMap.get(receiverId)==null)
-//                    usersMap.put(receiverId,mutableMapOf<String, Int>())
-//
-//                if(usersMap.get(receiverId)?.get(senderId)==null)
-//                     usersMap.get(receiverId)?.put(senderId,1)
-//                else
-//                      usersMap.get(receiverId)?.put(senderId,(usersMap.get(receiverId)?.get(senderId))!!+1)
-
                 var currentTime:String=""
                 var calendar=Calendar.getInstance()
                 val hour12hrs: Int = calendar.get(Calendar.HOUR)
@@ -86,20 +188,24 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     currentTime="$hour12hrs : $minutes AM"
                 else
                     currentTime="$hour12hrs : $minutes PM"
-                objChat!!.push().setValue(
+                 idMsg=objChat!!.push()?.key.toString()
+                objChat!!.child(idMsg).setValue(
                     ChatModel(
+                        idMsg,
                         myImage,
                         binding.edtext.text.toString(),
                         senderId,
                         receiverId
-                        ,currentTime
+                        ,currentTime,"",""
                     )
                 )
-                setLastMsg(binding.edtext.text.toString(),currentTime)
                 binding.edtext.setText("")
-                readMessage()
             }
         }
+    }
+    override fun onStart() {
+        super.onStart()
+        readMessage()
     }
     private fun getMyImage()
     {
@@ -117,7 +223,6 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
     private fun readMessage()
     {
-        objChat = FirebaseDatabase.getInstance().getReference("Chat")
         objChat?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
@@ -126,17 +231,29 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 chatList.clear()
                 for (data in snapshot.children) {
                     val chat = data.getValue(ChatModel::class.java)
+                    if (chat!!.senderId.equals(receiverId) && chat!!.receiverid.equals(senderId))
+                    {
+                        idMsg=chat!!.idMsg
+                        val hashMap: HashMap<String, Any> = HashMap()
+                        hashMap.put("seen", "seen")
+                        objChat?.child(idMsg)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
+                            Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
+                        }
+
+                    }
                     if (chat!!.senderId.equals(senderId) && chat!!.receiverid.equals(receiverId) ||
                         chat!!.senderId.equals(receiverId) && chat!!.receiverid.equals(senderId)) {
                         chatList.add(chat)
                     }
                 }
+                if(chatList.size>=1)
+                    setLastMsg(chatList[chatList.size-1].msg,chatList[chatList.size-1].time)
+                else
+                    setLastMsg("  ","  ")
+                val adapter = ChatAdapter(view!!.context,chatList)
+                binding.listview.adapter = adapter
             }
         })
-        binding.progressBar.isVisible=false
-        val adapter = ChatAdapter(requireContext(),chatList)
-        binding.recycler.layoutManager = LinearLayoutManager(requireContext())
-        binding.recycler.adapter = adapter
     }
     private fun setLastMsg(lastMsg:String,currentTime:String)
     {

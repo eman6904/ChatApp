@@ -38,7 +38,11 @@
         android:id="@+id/profile3"
         android:name="com.example.chatapp.ui.userInterface.ui.Profile"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profile3_to_users"
+            app:destination="@id/users" />
+    </fragment>
     <fragment
         android:id="@+id/chat"
         android:name="com.example.chatapp.ui.userInterface.ui.Chat"
