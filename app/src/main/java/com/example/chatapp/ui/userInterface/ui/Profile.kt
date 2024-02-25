@@ -23,8 +23,6 @@ import com.example.chatapp.databinding.FragmentProfileBinding
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import java.util.*
@@ -33,14 +31,17 @@ import java.util.*
 class Profile : Fragment(R.layout.fragment_profile) {
     private lateinit var binding: FragmentProfileBinding
     private lateinit var navController: NavController
+
     var obj: DatabaseReference? = null
     var storage: StorageReference? = null
     var uriImage: Uri? = null
     var profileImageUri:String=""
     var usernameSize = 20
     var descrSize=50
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding = FragmentProfileBinding.bind(view)
         navController = Navigation.findNavController(view)
 
@@ -62,6 +63,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
+
                 val user = snapshot.getValue(UserItems::class.java)
                 if (user?.username != "")
                     binding.username.setText(user!!.username)
@@ -180,8 +182,10 @@ class Profile : Fragment(R.layout.fragment_profile) {
             alertbuilder.setView(view)
             val alertDialog = alertbuilder.create()
             alertDialog.show()
+
             val setphoto = view.findViewById<TextView>(R.id.set_photo)
             val unsetphoto = view.findViewById<TextView>(R.id.unset_photo)
+
             setphoto.setOnClickListener()
             {
                 val intentImage = Intent(ACTION_PICK)

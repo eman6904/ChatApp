@@ -73,10 +73,9 @@
                 android:id="@+id/username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/bold"
                 android:text="@string/user_name"
-                android:textColor="#4527A0"
-                android:textSize="@dimen/_18sdp" />
+                android:textColor="@color/black"
+                android:textSize="@dimen/_13sdp" />
         </LinearLayout>
 
         <LinearLayout
@@ -106,10 +105,9 @@
                 android:id="@+id/description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/bold"
                 android:text=""
-                android:textColor="#4527A0"
-                android:textSize="@dimen/_15sdp" />
+                android:textColor="@color/black"
+                android:textSize="@dimen/_13sdp" />
         </LinearLayout>
 
         <ImageView

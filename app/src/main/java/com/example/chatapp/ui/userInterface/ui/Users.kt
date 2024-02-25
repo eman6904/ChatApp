@@ -16,14 +16,13 @@ import com.example.chatapp.ui.userInterface.model.UserAdapter
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 
 class Users : Fragment(R.layout.users) {
     private lateinit var binding: UsersBinding
     private lateinit var navController: NavController
     var obj: DatabaseReference? = null
     var list=ArrayList<UserItems>()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = UsersBinding.bind(view)
@@ -57,7 +56,7 @@ class Users : Fragment(R.layout.users) {
                     if(!user!!.id.equals(currentUserId))
                         list.add(user)
                     else{
-                        Glide.with(view!!.context).asBitmap().load(Uri.parse(user!!.profilePhoto))
+                        Glide.with(requireContext()).asBitmap().load(Uri.parse(user!!.profilePhoto))
                             .placeholder(R.drawable.personalphotojpg).into(binding.profileImage)
                     }
                 }

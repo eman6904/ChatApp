@@ -6,23 +6,18 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentChatBinding
 import com.example.chatapp.ui.userInterface.model.ChatAdapter
 import com.example.chatapp.ui.userInterface.model.ChatModel
 import com.example.chatapp.ui.userInterface.model.UserItems
-import com.example.chatapp.ui.userInterface.ui.MainActivity.Companion.usersMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+
 import java.util.*
 
 class Chat : Fragment(R.layout.fragment_chat) {
@@ -250,7 +245,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     setLastMsg(chatList[chatList.size-1].msg,chatList[chatList.size-1].time)
                 else
                     setLastMsg("  ","  ")
-                val adapter = ChatAdapter(view!!.context,chatList)
+                val adapter = ChatAdapter(requireContext(),chatList)
                 binding.listview.adapter = adapter
             }
         })

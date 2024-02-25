@@ -1,18 +1,15 @@
 package com.example.chatapp.ui.userInterface.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentSignInBinding
 import com.example.chatapp.ui.userInterface.model.UserItems
-import com.example.chatapp.ui.userInterface.ui.MainActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
