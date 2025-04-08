@@ -16,8 +16,7 @@ import com.example.chatapp.ui.userInterface.model.UserAdapter
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+
 
 class Users : Fragment(R.layout.users) {
     private lateinit var binding: UsersBinding
@@ -57,19 +56,26 @@ class Users : Fragment(R.layout.users) {
                     if(!user!!.id.equals(currentUserId))
                         list.add(user)
                     else{
-                        Glide.with(view!!.context).asBitmap().load(Uri.parse(user!!.profilePhoto))
-                            .placeholder(R.drawable.personalphotojpg).into(binding.profileImage)
+                        if(isAdded){
+                            Glide.with(requireContext()).asBitmap().load(Uri.parse(user.profilePhoto))
+                                .placeholder(R.drawable.personalphotojpg).into(binding.profileImage)
+                        }
                     }
                 }
-                binding.progressBar.isVisible = false
-                val adapter = UserAdapter(list)
-                binding.recycler.layoutManager = LinearLayoutManager(requireContext())
-                binding.recycler.adapter = adapter
+                //to make sure that views is active
+               if(isAdded){
+                   binding.progressBar.isVisible = false
+                   val adapter = UserAdapter(list)
+                   binding.recycler.layoutManager = LinearLayoutManager(requireContext())
+                   binding.recycler.adapter = adapter
+               }
 
             }
             override fun onCancelled(error: DatabaseError) {
-                binding.progressBar.isVisible = false
-                Toast.makeText(requireContext(), error.message, Toast.LENGTH_LONG).show()
+               if(isAdded){
+                   binding.progressBar.isVisible = false
+                   Toast.makeText(requireContext(), error.message, Toast.LENGTH_LONG).show()
+               }
             }
         })
     }

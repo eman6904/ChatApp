@@ -10,7 +10,6 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentSignUpBinding
-import com.example.chatapp.ui.userInterface.ui.MainActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -44,14 +43,17 @@ class SignUp : Fragment(R.layout.fragment_sign_up) {
     private fun signUp() {
         //for register with email and password
         if (binding.email.text.isNotEmpty() && binding.password.text.isNotEmpty()&&binding.username.text.isNotEmpty()) {
+
             binding.reEmail.isVisible = false
             binding.rePassword.isVisible = false
             binding.reusername.isVisible = false
             binding.progressBar.isVisible = true
+
             Auth?.createUserWithEmailAndPassword(
                 binding.email.text.toString(),
                 binding.password.text.toString()
             )
+
                 ?.addOnCompleteListener(object : OnCompleteListener<AuthResult> {
                     override fun onComplete(p0: Task<AuthResult>) {
                         if (p0.isSuccessful) {

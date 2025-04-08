@@ -1,28 +1,17 @@
 package com.example.chatapp.ui.userInterface.model
-
 import android.app.Activity
-import android.content.Context
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.annotation.GlideModule
-import com.bumptech.glide.load.model.GlideUrl
 import com.example.chatapp.R
 import com.example.chatapp.databinding.UserItemBinding
-import com.example.chatapp.ui.userInterface.ui.MainActivity.Companion.usersMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.storage.FirebaseStorage
-import java.util.HashMap
 
 class UserAdapter(private val list:ArrayList<UserItems>):
     RecyclerView.Adapter<UserAdapter.ViewHolder>() {
@@ -67,9 +56,15 @@ class UserAdapter(private val list:ArrayList<UserItems>):
         holder.username.text=list[position].username
         holder.currentTime.text=list[position].currentTime
         holder.msg.text=list[position].msg
-
-        Glide.with(holder.binding.root).asBitmap().load(Uri.parse(list[position].profilePhoto))
-            .placeholder(R.drawable.personalphoto).into(holder.profilrPhoto)
+        val context = holder.binding.root.context
+        if (context is Activity && !context.isDestroyed)
+            {
+                Glide.with(context).asBitmap()
+                    .load(Uri.parse(list[position].profilePhoto))
+                    .placeholder(R.drawable.personalphoto)
+                    .error(R.drawable.personalphoto)
+                    .into(holder.profilrPhoto)
+            }
 
         holder.binding.root.setOnClickListener()
         {

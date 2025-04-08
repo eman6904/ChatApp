@@ -23,8 +23,6 @@ import com.example.chatapp.databinding.FragmentProfileBinding
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import java.util.*
@@ -33,7 +31,7 @@ import java.util.*
 class Profile : Fragment(R.layout.fragment_profile) {
     private lateinit var binding: FragmentProfileBinding
     private lateinit var navController: NavController
-    var obj: DatabaseReference? = null
+    var usersObj: DatabaseReference? = null
     var storage: StorageReference? = null
     var uriImage: Uri? = null
     var profileImageUri:String=""
@@ -51,28 +49,34 @@ class Profile : Fragment(R.layout.fragment_profile) {
             navController.navigate(R.id.action_profile3_to_users)
         }
         storage = FirebaseStorage.getInstance().reference
-        var currentUser = FirebaseAuth.getInstance()?.currentUser!!
-        var id = currentUser.uid
+        var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
 
-        obj = FirebaseDatabase.getInstance().getReference("User").child(id)
+        usersObj = FirebaseDatabase.getInstance().getReference("User").child(currentUserId)
 
-        obj?.addValueEventListener(object : ValueEventListener {
+        usersObj?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
+                if(isAdded)
                 Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
+
                 val user = snapshot.getValue(UserItems::class.java)
                 if (user?.username != "")
                     binding.username.setText(user!!.username)
+
                 if (user?.descr != "")
                     binding.description.setText(user!!.descr)
-                Glide.with(activity.applicationContext).asBitmap().load(Uri.parse(user!!.profilePhoto))
-                    .placeholder(R.drawable.personalphotojpg).into(binding.profilephoto)
+
+                if(isAdded) {
+                    Glide.with(activity.applicationContext).asBitmap()
+                        .load(Uri.parse(user!!.profilePhoto))
+                        .placeholder(R.drawable.personalphotojpg).into(binding.profilephoto)
+                }
 
             }
         })
-        /////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////
         binding.updatUsername.setOnClickListener()
         {
             val alertbuilder = AlertDialog.Builder(requireContext())
@@ -98,10 +102,13 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 ) {}
                 override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                     //This sets a textview to the current length
-                    if(s.length<=19)
-                     counter.setText((usernameSize-s.length).toString())
-                    else {
+                    if(s.length<=19) {
+
                         counter.setText((usernameSize - s.length).toString())
+                    } else {
+
+                        counter.setText((usernameSize - s.length).toString())
+
                         edText.isEnabled = false
                     }
                 }
@@ -112,9 +119,11 @@ class Profile : Fragment(R.layout.fragment_profile) {
 
             setButton.setOnClickListener()
             {
+
                 val hashMap: HashMap<String, Any> = HashMap()
                 hashMap.put("username", edText.text.toString())
-                obj?.updateChildren(hashMap as Map<String, Any>)?.addOnSuccessListener {
+
+                usersObj?.updateChildren(hashMap as Map<String, Any>)?.addOnSuccessListener {
                     Toast.makeText(view!!.context, "Successful", Toast.LENGTH_LONG).show()
                 }?.addOnFailureListener {
                     Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
@@ -122,7 +131,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                 alertDialog.dismiss()
             }
         }
-        /////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////
         binding.updatDesc.setOnClickListener()
         {
             val alertbuilder = AlertDialog.Builder(requireContext())
@@ -164,7 +173,8 @@ class Profile : Fragment(R.layout.fragment_profile) {
             {
                 val hashMap: HashMap<String, Any> = HashMap()
                 hashMap.put("descr", edText.text.toString())
-                obj?.updateChildren(hashMap as Map<String, Any>)?.addOnSuccessListener {
+
+                usersObj?.updateChildren(hashMap as Map<String, Any>)?.addOnSuccessListener {
                     Toast.makeText(view!!.context, "Successful", Toast.LENGTH_LONG).show()
                 }?.addOnFailureListener {
                     Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
@@ -180,6 +190,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
             alertbuilder.setView(view)
             val alertDialog = alertbuilder.create()
             alertDialog.show()
+
             val setphoto = view.findViewById<TextView>(R.id.set_photo)
             val unsetphoto = view.findViewById<TextView>(R.id.unset_photo)
             setphoto.setOnClickListener()
@@ -200,6 +211,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 2 && resultCode == RESULT_OK) {
+
             uriImage = data!!.data
             storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)?.addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
@@ -207,7 +219,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
                     Log.d("profillllle",profileImageUri)
                     setPhoto()
             }
-                Toast.makeText(requireContext(),"Uploaded",Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(),"Uploaded",Toast.LENGTH_LONG).show()
 
             }?.addOnFailureListener(){
                 Toast.makeText(requireContext(),it.message,Toast.LENGTH_LONG).show()
@@ -220,7 +232,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
     private fun setPhoto() {
         val hashMap: HashMap<String, Any> = HashMap()
         hashMap.put("profilePhoto", profileImageUri)
-        obj?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
+        usersObj?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
             Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
         }
     }
@@ -228,7 +240,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
     private fun unsetPhoto() {
         val hashMap: HashMap<String, Any> = HashMap()
         hashMap.put("profilePhoto", "")
-        obj?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
+        usersObj?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
             Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
         }
     }

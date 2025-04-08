@@ -1,18 +1,15 @@
 package com.example.chatapp.ui.userInterface.ui
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.View
 import android.widget.Toast
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentSignInBinding
 import com.example.chatapp.ui.userInterface.model.UserItems
-import com.example.chatapp.ui.userInterface.ui.MainActivity
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -49,13 +46,16 @@ class SignIn : Fragment(R.layout.fragment_sign_in) {
     //***************************************************************************************
     private fun signIn() {
         if (binding.email.text.isNotEmpty() && binding.password.text.isNotEmpty()) {
+
             binding.reemail.isVisible = false
             binding.repassword.isVisible = false
             binding.progressBar.isVisible = true
+
             Auth?.signInWithEmailAndPassword(
                 binding.email.text.toString(),
                 binding.password.text.toString()
             )
+
                 ?.addOnCompleteListener(object : OnCompleteListener<AuthResult> {
                     override fun onComplete(p0: Task<AuthResult>) {
                         if (p0.isSuccessful) {

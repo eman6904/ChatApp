@@ -6,23 +6,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.*
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentChatBinding
 import com.example.chatapp.ui.userInterface.model.ChatAdapter
 import com.example.chatapp.ui.userInterface.model.ChatModel
 import com.example.chatapp.ui.userInterface.model.UserItems
-import com.example.chatapp.ui.userInterface.ui.MainActivity.Companion.usersMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import java.util.*
 
 class Chat : Fragment(R.layout.fragment_chat) {
@@ -162,14 +156,17 @@ class Chat : Fragment(R.layout.fragment_chat) {
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(receiverId)
         objUsers?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
+                if(isAdded)
                 Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(UserItems::class.java)
                 binding.username.text=user!!.username
-                Glide.with(activity.applicationContext).asBitmap().load(Uri.parse(user!!.profilePhoto))
-                    .placeholder(R.drawable.personalphotojpg).into(binding.userImage)
+                if(isAdded){
+                    Glide.with(requireContext()).asBitmap().load(Uri.parse(user.profilePhoto))
+                        .placeholder(R.drawable.personalphotojpg).into(binding.userImage)
+                }
             }
         })
         ////////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +209,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(senderId)
         objUsers?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
+               if(isAdded)
+                   Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -225,33 +223,40 @@ class Chat : Fragment(R.layout.fragment_chat) {
     {
         objChat?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
+                if(isAdded)
+                    Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
             override fun onDataChange(snapshot: DataSnapshot) {
                 chatList.clear()
+                senderId= FirebaseAuth.getInstance().currentUser!!.uid
+                receiverId=arguments?.getString("id").toString()
                 for (data in snapshot.children) {
                     val chat = data.getValue(ChatModel::class.java)
-                    if (chat!!.senderId.equals(receiverId) && chat!!.receiverid.equals(senderId))
-                    {
-                        idMsg=chat!!.idMsg
-                        val hashMap: HashMap<String, Any> = HashMap()
-                        hashMap.put("seen", "seen")
-                        objChat?.child(idMsg)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
-                            Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
-                        }
+                    if (chat != null) {
+                        if (chat.senderId.equals(receiverId) && chat.receiverid.equals(senderId)) {
+                            idMsg=chat.idMsg
+                            val hashMap: HashMap<String, Any> = HashMap()
+                            hashMap.put("seen", "seen")
+                            objChat?.child(idMsg)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
+                                if(isAdded)
+                                    Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
+                            }
 
-                    }
-                    if (chat!!.senderId.equals(senderId) && chat!!.receiverid.equals(receiverId) ||
-                        chat!!.senderId.equals(receiverId) && chat!!.receiverid.equals(senderId)) {
-                        chatList.add(chat)
+                        }
+                        if (chat.senderId.equals(senderId) && chat.receiverid.equals(receiverId) ||
+                            chat.senderId.equals(receiverId) && chat.receiverid.equals(senderId)) {
+                            chatList.add(chat)
+                        }
                     }
                 }
-                if(chatList.size>=1)
-                    setLastMsg(chatList[chatList.size-1].msg,chatList[chatList.size-1].time)
-                else
-                    setLastMsg("  ","  ")
-                val adapter = ChatAdapter(view!!.context,chatList)
-                binding.listview.adapter = adapter
+                if(isAdded){
+                    if(chatList.size>=1)
+                        setLastMsg(chatList[chatList.size-1].msg,chatList[chatList.size-1].time)
+                    else
+                        setLastMsg("  ","  ")
+                    val adapter = ChatAdapter(requireContext(),chatList)
+                    binding.listview.adapter = adapter
+                }
             }
         })
     }
