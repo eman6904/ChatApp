@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Theme.ChatApp" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#30833C</item>
-        <item name="colorPrimaryVariant">#30833C</item>
+        <item name="colorPrimary">#005D4B</item>
+        <item name="colorPrimaryVariant">#005D4B</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/teal_200</item>

@@ -21,7 +21,9 @@ import com.google.firebase.database.*
 class Users : Fragment(R.layout.users) {
     private lateinit var binding: UsersBinding
     private lateinit var navController: NavController
-    var obj: DatabaseReference? = null
+    private lateinit var friendsListener: ValueEventListener
+
+    var friendsObj: DatabaseReference? = null
     var list=ArrayList<UserItems>()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -43,12 +45,12 @@ class Users : Fragment(R.layout.users) {
     //************************************************************
     override fun onStart() {
         super.onStart()
-        obj = FirebaseDatabase.getInstance().getReference("User")
+        friendsObj = FirebaseDatabase.getInstance().getReference("User")
         //current user is the person who is currently registered or made login
         var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
 //            //to create new id
 //            var id = obj!!.push().key
-        obj?.addValueEventListener(object : ValueEventListener {
+        friendsListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 list.clear()
                 for (data in snapshot.children) {
@@ -77,6 +79,11 @@ class Users : Fragment(R.layout.users) {
                    Toast.makeText(requireContext(), error.message, Toast.LENGTH_LONG).show()
                }
             }
-        })
+        }
+        friendsObj?.addValueEventListener(friendsListener)
+    }
+    override fun onStop() {
+        super.onStop()
+        friendsObj?.removeEventListener(friendsListener)
     }
 }

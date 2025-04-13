@@ -1,10 +1,15 @@
 package com.example.chatapp.ui.userInterface.fragments
 
+import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
+import android.content.Intent.ACTION_PICK
 import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -12,6 +17,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -23,11 +30,18 @@ import com.example.chatapp.ui.userInterface.model.ChatModel
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import java.util.*
 
 class Chat : Fragment(R.layout.fragment_chat) {
     private lateinit var binding: FragmentChatBinding
     private lateinit var navController: NavController
+    private lateinit var chatListener: ValueEventListener
+    var msgModel: ChatModel? = null
+    var imageMsg: String? = null
+    var storage: StorageReference? = null
+    var uriImage: Uri? = null
     var objUsers: DatabaseReference? = null
     var objChat: DatabaseReference? = null
     var senderId:String=""
@@ -42,6 +56,34 @@ class Chat : Fragment(R.layout.fragment_chat) {
         val activity = activity as MainActivity
         activity.supportActionBar?.hide()
         objChat = FirebaseDatabase.getInstance().getReference("Chat")
+        storage = FirebaseStorage.getInstance().reference
+
+        ///////////////////////////////////////////////////////////////////////////////
+
+        binding.messageInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+
+                if(binding.messageInput.text.toString().isNotEmpty()){
+
+                    binding.micIcon.isVisible = false
+                    binding.cameraIcon.isVisible = false
+                    binding.sendIcon.isVisible = true
+                }else{
+
+                    binding.micIcon.isVisible = true
+                    binding.cameraIcon.isVisible = true
+                    binding.sendIcon.isVisible = false
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+        })
        /////////////////////////////////////////////////////////////////////////////////
         //for react with message
         binding.listview.onItemClickListener=object :AdapterView.OnItemClickListener{
@@ -183,31 +225,20 @@ class Chat : Fragment(R.layout.fragment_chat) {
         ////////////////////////////////////////////////////////////////////////////////////
         senderId=FirebaseAuth.getInstance()?.currentUser!!.uid
         getMyImage()
+        //for send message
         binding.send.setOnClickListener()
         {
             if(binding.messageInput.text.isEmpty())
                 Toast.makeText(requireContext(),"Message is empty",Toast.LENGTH_LONG).show()
             else {
-                var currentTime:String=""
-                var calendar=Calendar.getInstance()
-                val hour12hrs: Int = calendar.get(Calendar.HOUR)
-                val minutes: Int = calendar.get(Calendar.MINUTE)
-                if(calendar.get(Calendar.AM_PM) == Calendar.AM)
-                    currentTime="$hour12hrs : $minutes AM"
-                else
-                    currentTime="$hour12hrs : $minutes PM"
-                 idMsg=objChat!!.push()?.key.toString()
-                objChat!!.child(idMsg).setValue(
-                    ChatModel(
-                        idMsg,
-                        myImage,
-                        binding.messageInput.text.toString(),
-                        senderId,
-                        receiverId
-                        ,currentTime,"",""
+                prepareMsg()
+                if(msgModel!=null){
+                    msgModel!!.msg = binding.messageInput.text.toString()
+                    objChat!!.child(idMsg).setValue(
+                        msgModel
                     )
-                )
-                binding.messageInput.setText("")
+                    binding.messageInput.setText("")
+                }
             }
         }
     }
@@ -215,10 +246,11 @@ class Chat : Fragment(R.layout.fragment_chat) {
         super.onStart()
         readMessage()
     }
+
     private fun getMyImage()
     {
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(senderId)
-        objUsers?.addValueEventListener(object : ValueEventListener {
+        objUsers?.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                if(isAdded)
                    Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
@@ -232,7 +264,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
     private fun readMessage()
     {
-        objChat?.addValueEventListener(object : ValueEventListener {
+        chatListener = object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 if(isAdded)
                     Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
@@ -265,6 +297,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                         setLastMsg(chatList[chatList.size-1].msg,chatList[chatList.size-1].time)
                     else
                         setLastMsg("  ","  ")
+                    binding.progressBar.isVisible = false
                     val adapter = ChatAdapter(requireContext(),chatList)
                     binding.listview.adapter = adapter
                     binding.listview.post {
@@ -272,7 +305,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     }
                 }
             }
-        })
+        }
+        objChat?.addValueEventListener(chatListener)
     }
     private fun setLastMsg(lastMsg:String,currentTime:String)
     {
@@ -290,6 +324,35 @@ class Chat : Fragment(R.layout.fragment_chat) {
         objUsers?.updateChildren(hashMap2 as Map<String, Any>)?.addOnFailureListener {
             Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
         }
+    }
+    // to upload image from gallery to send it in chat
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 2 && resultCode == RESULT_OK) {
+
+            uriImage = data!!.data
+            storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)?.addOnSuccessListener { taskSnapshot ->
+                taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
+                    imageMsg = uri.toString()
+                    if(imageMsg!=null) {
+                        prepareMsg()
+                        if (msgModel != null) {
+                            msgModel!!.imageMsg = imageMsg!!
+                            objChat!!.child(idMsg).setValue(
+                                msgModel
+                            )
+                        }
+                    }
+
+                }
+                Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
+
+            }?.addOnFailureListener(){
+                Toast.makeText(requireContext(),it.message,Toast.LENGTH_LONG).show()
+            }
+        }
+        Log.d("image",imageMsg.toString())
+
     }
     private fun attachmentBottomSheetPopup(
         context:Context
@@ -320,5 +383,38 @@ class Chat : Fragment(R.layout.fragment_chat) {
         val editTextY = location[1]
 
         popupWindow.showAtLocation( binding.messageInput, Gravity.NO_GRAVITY, editTextX, editTextY - popupView.measuredHeight)
+
+        val gallery = popupView.findViewById<CardView>(R.id.gallery)
+        gallery.setOnClickListener {
+            val intentImage = Intent(ACTION_PICK)
+            intentImage.type = "image/*"
+            startActivityForResult(intentImage, 2)
+            popupWindow.dismiss()
+        }
     }
+    private fun prepareMsg(){
+        var currentTime:String=""
+        var calendar=Calendar.getInstance()
+        val hour12hrs: Int = calendar.get(Calendar.HOUR)
+        val minutes: Int = calendar.get(Calendar.MINUTE)
+        if(calendar.get(Calendar.AM_PM) == Calendar.AM)
+            currentTime="$hour12hrs : $minutes AM"
+        else
+            currentTime="$hour12hrs : $minutes PM"
+        idMsg = objChat!!.push()?.key.toString()
+        msgModel = ChatModel(
+            idMsg,
+            myImage,
+            "",
+            "",
+            senderId,
+            receiverId
+            ,currentTime,"",""
+        )
+    }
+    override fun onStop() {
+        super.onStop()
+        objChat?.removeEventListener(chatListener)
+    }
+
 }

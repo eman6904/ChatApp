@@ -53,7 +53,7 @@ class Profile : Fragment(R.layout.fragment_profile) {
 
         usersObj = FirebaseDatabase.getInstance().getReference("User").child(currentUserId)
 
-        usersObj?.addValueEventListener(object : ValueEventListener {
+        usersObj?.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 if(isAdded)
                 Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
@@ -216,10 +216,9 @@ class Profile : Fragment(R.layout.fragment_profile) {
             storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)?.addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
                     profileImageUri = uri.toString()
-                    Log.d("profillllle",profileImageUri)
                     setPhoto()
             }
-            Toast.makeText(requireContext(),"Uploaded",Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
 
             }?.addOnFailureListener(){
                 Toast.makeText(requireContext(),it.message,Toast.LENGTH_LONG).show()

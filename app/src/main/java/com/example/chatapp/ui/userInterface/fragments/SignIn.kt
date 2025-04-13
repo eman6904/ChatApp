@@ -103,4 +103,12 @@ class SignIn : Fragment(R.layout.fragment_sign_in) {
         var user= UserItems(currentUserId,username,"","","","")
         obj?.child(currentUserId)?.setValue(user)
     }
+    override fun onStart() {
+        super.onStart()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            navController.navigate(R.id.action_signIn_to_users)
+        }
+    }
+
 }

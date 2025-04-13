@@ -4,6 +4,7 @@ data class ChatModel(
     var idMsg: String = "",
     var pr_image: String = "",
     var msg: String = "",
+    var imageMsg:String = "",
     var senderId: String = "",
     var receiverid: String = "",
     var time: String = "",
