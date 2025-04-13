@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.ui
+package com.example.chatapp.ui.userInterface.fragments
 
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog

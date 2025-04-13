@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.model
+package com.example.chatapp.ui.userInterface.adapter
 import android.app.Activity
 import android.net.Uri
 import android.view.LayoutInflater
@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.UserItemBinding
+import com.example.chatapp.ui.userInterface.model.ChatModel
+import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 

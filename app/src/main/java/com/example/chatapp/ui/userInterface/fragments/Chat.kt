@@ -1,10 +1,16 @@
-package com.example.chatapp.ui.userInterface.ui
+package com.example.chatapp.ui.userInterface.fragments
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
@@ -12,7 +18,7 @@ import androidx.navigation.Navigation
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentChatBinding
-import com.example.chatapp.ui.userInterface.model.ChatAdapter
+import com.example.chatapp.ui.userInterface.adapter.ChatAdapter
 import com.example.chatapp.ui.userInterface.model.ChatModel
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
@@ -110,6 +116,11 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
         }
         //////////////////////////////////////////////////////////////////////////////////
+        //attachment bottom sheet
+        binding.attachIcon.setOnClickListener {
+            attachmentBottomSheetPopup(requireContext())
+        }
+        //////////////////////////////////////////////////////////////////////////////////
         //for delete or update msg
         binding.listview.onItemLongClickListener=object :AdapterView.OnItemLongClickListener{
             override fun onItemLongClick(
@@ -172,9 +183,9 @@ class Chat : Fragment(R.layout.fragment_chat) {
         ////////////////////////////////////////////////////////////////////////////////////
         senderId=FirebaseAuth.getInstance()?.currentUser!!.uid
         getMyImage()
-        binding.sendmMsg.setOnClickListener()
+        binding.send.setOnClickListener()
         {
-            if(binding.edtext.text.isEmpty())
+            if(binding.messageInput.text.isEmpty())
                 Toast.makeText(requireContext(),"Message is empty",Toast.LENGTH_LONG).show()
             else {
                 var currentTime:String=""
@@ -190,13 +201,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     ChatModel(
                         idMsg,
                         myImage,
-                        binding.edtext.text.toString(),
+                        binding.messageInput.text.toString(),
                         senderId,
                         receiverId
                         ,currentTime,"",""
                     )
                 )
-                binding.edtext.setText("")
+                binding.messageInput.setText("")
             }
         }
     }
@@ -256,6 +267,9 @@ class Chat : Fragment(R.layout.fragment_chat) {
                         setLastMsg("  ","  ")
                     val adapter = ChatAdapter(requireContext(),chatList)
                     binding.listview.adapter = adapter
+                    binding.listview.post {
+                        binding.listview.setSelection(chatList.size - 1)
+                    }
                 }
             }
         })
@@ -276,5 +290,35 @@ class Chat : Fragment(R.layout.fragment_chat) {
         objUsers?.updateChildren(hashMap2 as Map<String, Any>)?.addOnFailureListener {
             Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
         }
+    }
+    private fun attachmentBottomSheetPopup(
+        context:Context
+    ){
+
+        val popupView = LayoutInflater.from(context).inflate(R.layout.attachment_bottom_sheet, null)
+        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+        val marginInPx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            16f,
+            context.resources.displayMetrics
+        ).toInt()
+
+        val popupWidth = screenWidth - (marginInPx * 2)
+
+        val popupWindow = PopupWindow(
+            popupView,
+            popupWidth,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popupWindow.isOutsideTouchable = true
+        popupWindow.isFocusable = true
+
+        val location = IntArray(2)
+        binding.messageInput.getLocationOnScreen(location)
+        val editTextX = location[0]
+        val editTextY = location[1]
+
+        popupWindow.showAtLocation( binding.messageInput, Gravity.NO_GRAVITY, editTextX, editTextY - popupView.measuredHeight)
     }
 }

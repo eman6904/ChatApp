@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.ui
+package com.example.chatapp.ui.userInterface.fragments
 
 import android.net.Uri
 import android.os.Bundle
@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.UsersBinding
-import com.example.chatapp.ui.userInterface.model.UserAdapter
+import com.example.chatapp.ui.userInterface.adapter.UserAdapter
 import com.example.chatapp.ui.userInterface.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*

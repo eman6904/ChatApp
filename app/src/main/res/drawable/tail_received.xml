@@ -1,0 +1,11 @@
+<!-- res/drawable/tail_received.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="12dp"
+    android:viewportWidth="16"
+    android:viewportHeight="12">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M16,0 L0,0 L13,10 Z"/>
+</vector>

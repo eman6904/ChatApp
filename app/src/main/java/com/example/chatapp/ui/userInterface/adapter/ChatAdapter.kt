@@ -1,16 +1,16 @@
-package com.example.chatapp.ui.userInterface.model
+package com.example.chatapp.ui.userInterface.adapter
 
 import android.content.Context
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
-import com.bumptech.glide.Glide
 import com.example.chatapp.R
+import com.example.chatapp.ui.userInterface.model.ChatModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
@@ -42,14 +42,21 @@ class ChatAdapter(private val context: Context, private val chatList: ArrayList<
             } else {
                 view = LayoutInflater.from(context).inflate(R.layout.item_left,p2,false)
             }
-        var msg=view.findViewById<TextView>(R.id.msg)
-        var time=view.findViewById<TextView>(R.id.time)
+        var msg=view.findViewById<TextView>(R.id.text_message_body)
+        var time=view.findViewById<TextView>(R.id.text_message_time)
         var action=view.findViewById<TextView>(R.id.action)
-        var seen=view.findViewById<ImageView>(R.id.seen)
+        var seen=view.findViewById<TextView>(R.id.seen)
+        var tail=view.findViewById<ImageView>(R.id.tail)
+        var actionBackground=view.findViewById<CardView>(R.id.actionBackground)
         val item: ChatModel = getItem(position) as ChatModel
         msg.text=item.msg
         time.text=item.time
-        action.text=item.action
+        if(item.action.isNotEmpty()){
+            actionBackground.isVisible = true
+            action.text = item.action
+        }else{
+            actionBackground.isVisible = false
+        }
         if(type==RIGHT)
         {
             if(item.seen=="seen")
@@ -57,6 +64,10 @@ class ChatAdapter(private val context: Context, private val chatList: ArrayList<
             else
                 seen.isVisible=false
         }
+        if(position>0&&getItemViewType(position)==getItemViewType(position-1))
+            tail.isVisible = false
+        else
+            tail.isVisible = true
         return view
     }
     override fun getItemViewType(position: Int): Int {
