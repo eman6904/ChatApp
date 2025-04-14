@@ -331,27 +331,30 @@ class Chat : Fragment(R.layout.fragment_chat) {
         if (requestCode == 2 && resultCode == RESULT_OK) {
 
             uriImage = data!!.data
+            prepareMsg()
+            if(msgModel!=null) {
+
+                    msgModel!!.imageMsg = imageMsg.toString()
+                    objChat!!.child(idMsg).setValue(
+                        msgModel
+                    )
+            }
             storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)?.addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
                     imageMsg = uri.toString()
                     if(imageMsg!=null) {
-                        prepareMsg()
-                        if (msgModel != null) {
-                            msgModel!!.imageMsg = imageMsg!!
-                            objChat!!.child(idMsg).setValue(
-                                msgModel
-                            )
-                        }
+                        val updateMap = HashMap<String, Any>()
+                        updateMap["imageMsg"] = imageMsg!!
+                        objChat!!.child(idMsg).updateChildren(updateMap)
                     }
 
                 }
-                Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
+               // Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
 
             }?.addOnFailureListener(){
                 Toast.makeText(requireContext(),it.message,Toast.LENGTH_LONG).show()
             }
         }
-        Log.d("image",imageMsg.toString())
 
     }
     private fun attachmentBottomSheetPopup(

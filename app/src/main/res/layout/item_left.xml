@@ -7,7 +7,7 @@
     android:gravity="left">
 
     <RelativeLayout
-        android:id="@+id/msg"
+        android:id="@+id/msg_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="left"
@@ -22,6 +22,7 @@
             android:layout_alignParentTop="true"
             android:src="@drawable/tail_received"/>
         <LinearLayout
+            android:id="@+id/text_msg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
@@ -61,6 +62,51 @@
                     android:textSize="12sp"/>
             </LinearLayout>
         </LinearLayout>
+        <LinearLayout
+            android:id="@+id/image_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/msg_left"
+            android:padding="@dimen/_5sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:orientation="vertical">
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="@dimen/_190sdp"
+            android:layout_height="@dimen/_225sdp"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:scaleType="fitXY"
+            android:layout_gravity="center"
+            android:layout_weight="2"
+            app:srcCompat="@drawable/light_background"
+            />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="left"
+            android:padding="@dimen/_4sdp"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/image_msg_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center|right"
+                android:textColor="#80090909"
+                android:layout_marginEnd="@dimen/_10sdp"
+                android:text="8:40 pm" />
+            <TextView
+                android:id="@+id/image_seen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="  👀"
+                android:visibility="gone"
+                android:textColor="@color/white"
+                android:textSize="12sp"/>
+        </LinearLayout>
+    </LinearLayout>
     </RelativeLayout>
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/actionBackground"
@@ -71,7 +117,7 @@
         app:cardCornerRadius="@dimen/_10sdp"
         app:cardPreventCornerOverlap="true"
         android:layout_marginLeft="@dimen/_20sdp"
-        android:layout_alignBottom="@+id/msg"
+        android:layout_alignBottom="@+id/msg_body"
         android:layout_alignParentStart="true"
         android:visibility="gone"
         app:cardMaxElevation="20dp">
