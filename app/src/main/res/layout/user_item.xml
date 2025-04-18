@@ -50,7 +50,7 @@
                    android:textColor="@color/white"
                    android:layout_marginLeft="@dimen/_110sdp"
                    android:gravity="center"
-                   android:background="@drawable/circle"
+                   android:background="@drawable/circle_shape"
                    android:layout_gravity="right"
                    android:text="0" />
 

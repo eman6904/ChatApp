@@ -56,6 +56,7 @@ class ChatAdapter(private val context: Context, private val chatList: ArrayList<
         var tail=view.findViewById<ImageView>(R.id.tail)
         val text_msg = view.findViewById<LinearLayout>(R.id.text_msg)
         val image_msg = view.findViewById<LinearLayout>(R.id.image_msg)
+        val record_msg = view.findViewById<LinearLayout>(R.id.record_msg)
         var actionBackground=view.findViewById<CardView>(R.id.actionBackground)
         if(item.action.isNotEmpty()){
             actionBackground.isVisible = true
@@ -71,6 +72,7 @@ class ChatAdapter(private val context: Context, private val chatList: ArrayList<
         if(item.imageMsg.isEmpty()){
 
             image_msg.isVisible = false
+            record_msg.isVisible = false
             text_msg.isVisible = true
 
             var msg=view.findViewById<TextView>(R.id.text_message_body)
@@ -90,24 +92,18 @@ class ChatAdapter(private val context: Context, private val chatList: ArrayList<
 
             image_msg.isVisible = true
             text_msg.isVisible = false
+            record_msg.isVisible = false
 
             var time=view.findViewById<TextView>(R.id.image_msg_time)
             var image=view.findViewById<ImageView>(R.id.image)
             var seen=view.findViewById<TextView>(R.id.image_seen)
             if (context is Activity && !context.isDestroyed)
             {
-                if(item.imageMsg!=null){
-                    Glide.with(context).asBitmap()
-                        .load(Uri.parse(item.imageMsg))
-                        .placeholder(R.drawable.personalphoto)
-                        .error(R.drawable.personalphoto)
-                        .into(image)
-                }else{
-                    Glide.with(context).asBitmap()
-                        .placeholder(R.drawable.personalphoto)
-                        .error(R.drawable.personalphoto)
-                        .into(image)
-                }
+                Glide.with(context).asBitmap()
+                    .load(Uri.parse(item.imageMsg))
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.drawable.progress_animation)
+                    .into(image)
             }
             time.text=item.time
             if(type==RIGHT)

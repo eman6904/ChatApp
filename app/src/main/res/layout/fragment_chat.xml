@@ -90,13 +90,19 @@
         android:transcriptMode="alwaysScroll"
         android:divider="@null" />
     </FrameLayout>
+   <FrameLayout
+       android:id="@+id/chat_input_container"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_alignParentBottom="true"
+       >
     <LinearLayout
-        android:id="@+id/chat_input_container"
+        android:id="@+id/msg_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp"
         android:weightSum="7"
-        android:layout_alignParentBottom="true"
+        android:paddingEnd="@dimen/_4sdp"
+        android:visibility="visible"
         android:orientation="horizontal"
         android:gravity="center_vertical">
         <RelativeLayout
@@ -161,7 +167,7 @@
             android:layout_weight="1"
             android:background="@drawable/circle_shape"
             android:gravity="center"
-            android:layout_height="wrap_content">
+            android:layout_height="@dimen/_40sdp">
             <ImageView
                 android:id="@+id/send_icon"
                 android:layout_width="15dp"
@@ -175,12 +181,70 @@
             <ImageView
                 android:id="@+id/mic_icon"
                 android:layout_width="@dimen/_20sdp"
-                android:layout_height="@dimen/_20sdp"
+                android:layout_height="@dimen/_22sdp"
                 app:tint="@color/white"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent"
                 android:src="@drawable/mic_icon" />
         </FrameLayout>
     </LinearLayout>
-
+       <FrameLayout
+           android:id="@+id/recording_container"
+           android:visibility="gone"
+           android:paddingStart="@dimen/_5sdp"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content">
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="@dimen/_40sdp"
+               android:layout_gravity="center"
+               android:padding="@dimen/_4sdp"
+               android:background="@drawable/chat_input_background">
+               <ImageView
+                   android:id="@+id/mic3_icon"
+                   android:layout_width="@dimen/_20sdp"
+                   android:layout_height="@dimen/_20sdp"
+                   app:tint="#FB4949"
+                   android:layout_marginLeft="@dimen/_5sdp"
+                   android:layout_gravity="start|center"
+                   android:background="@android:color/transparent"
+                   android:src="@drawable/mic_icon" />
+               <TextView
+                   android:id="@+id/record_msg_time"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:layout_gravity="start|center"
+                   android:textColor="#80090909"
+                   android:padding="@dimen/_4sdp"
+                   android:textSize="@dimen/_15sdp"
+                   android:text="8:40" />
+               <TextView
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:textColor="#80090909"
+                   android:gravity="right"
+                   android:paddingEnd="@dimen/_55sdp"
+                   android:padding="@dimen/_4sdp"
+                   android:textSize="@dimen/_13sdp"
+                   android:text="Slide to cancel" />
+           </LinearLayout>
+           <FrameLayout
+               android:id="@+id/record"
+               android:layout_width="@dimen/_55sdp"
+               android:layout_height="@dimen/_55sdp"
+               android:background="@drawable/circle_shape"
+               android:gravity="center"
+               android:layout_gravity="end|center"
+              >
+           <ImageView
+               android:id="@+id/mic2_icon"
+               android:layout_width="@dimen/_20sdp"
+               android:layout_height="@dimen/_20sdp"
+               app:tint="@color/white"
+               android:layout_gravity="center"
+               android:background="@android:color/transparent"
+               android:src="@drawable/mic_icon" />
+           </FrameLayout>
+       </FrameLayout>
+   </FrameLayout>
 </RelativeLayout>

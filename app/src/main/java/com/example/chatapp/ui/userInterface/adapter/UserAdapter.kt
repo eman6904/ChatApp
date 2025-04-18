@@ -1,6 +1,7 @@
 package com.example.chatapp.ui.userInterface.adapter
 import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
@@ -18,7 +19,7 @@ import com.google.firebase.database.*
 class UserAdapter(private val list:ArrayList<UserItems>):
     RecyclerView.Adapter<UserAdapter.ViewHolder>() {
     var objChat: DatabaseReference? = null
-    var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
+    var ctr:Int = 0
     inner class ViewHolder(val binding:UserItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
             var profilrPhoto=binding.profileImage
@@ -35,16 +36,18 @@ class UserAdapter(private val list:ArrayList<UserItems>):
     }
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
-        var ctr:Int=0
-        var senderId=list[position].id
+        ctr = 0
         objChat = FirebaseDatabase.getInstance().getReference("Chat")
         objChat?.addValueEventListener(object : ValueEventListener {
+
             override fun onCancelled(error: DatabaseError) {
             }
+
             override fun onDataChange(snapshot: DataSnapshot) {
+                var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
                 for (data in snapshot.children) {
                     val chat = data.getValue(ChatModel::class.java)
-                    if(chat!!.receiverid==currentUserId&&chat.senderId==senderId&&chat.seen==""){
+                    if(chat!!.receiverid==currentUserId&&chat.senderId==list[position].id&&chat.seen==""){
                         ctr++
                     }
                 }

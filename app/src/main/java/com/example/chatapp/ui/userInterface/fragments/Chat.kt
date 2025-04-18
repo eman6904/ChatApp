@@ -14,6 +14,7 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -47,7 +48,6 @@ class Chat : Fragment(R.layout.fragment_chat) {
     var senderId:String=""
     var receiverId:String=""
     var myImage:String=""
-    var idMsg:String=""
     var chatList=ArrayList<ChatModel>()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -59,7 +59,28 @@ class Chat : Fragment(R.layout.fragment_chat) {
         storage = FirebaseStorage.getInstance().reference
 
         ///////////////////////////////////////////////////////////////////////////////
+        binding.micIcon.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // المستخدم بدأ يضغط
+                    binding.recordingContainer.isVisible = true
+                    binding.msgContainer.isVisible = false
+                   // startRecording()
+                    true
+                }
 
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    // المستخدم ساب الزر أو سحب صباعه بعيد
+                    binding.recordingContainer.isVisible = false
+                    binding.msgContainer.isVisible = true
+                   // stopRecordingAndSend()
+                    true
+                }
+
+                else -> false
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////
         binding.messageInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
 
@@ -234,7 +255,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 prepareMsg()
                 if(msgModel!=null){
                     msgModel!!.msg = binding.messageInput.text.toString()
-                    objChat!!.child(idMsg).setValue(
+                    objChat!!.child(msgModel!!.idMsg).setValue(
                         msgModel
                     )
                     binding.messageInput.setText("")
@@ -277,10 +298,9 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     val chat = data.getValue(ChatModel::class.java)
                     if (chat != null) {
                         if (chat.senderId.equals(receiverId) && chat.receiverid.equals(senderId)) {
-                            idMsg=chat.idMsg
                             val hashMap: HashMap<String, Any> = HashMap()
                             hashMap.put("seen", "seen")
-                            objChat?.child(idMsg)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
+                            objChat?.child(chat.idMsg)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
                                 if(isAdded)
                                     Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
                             }
@@ -335,7 +355,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             if(msgModel!=null) {
 
                     msgModel!!.imageMsg = imageMsg.toString()
-                    objChat!!.child(idMsg).setValue(
+                    objChat!!.child(msgModel!!.idMsg).setValue(
                         msgModel
                     )
             }
@@ -345,7 +365,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     if(imageMsg!=null) {
                         val updateMap = HashMap<String, Any>()
                         updateMap["imageMsg"] = imageMsg!!
-                        objChat!!.child(idMsg).updateChildren(updateMap)
+                        objChat!!.child(msgModel!!.idMsg).updateChildren(updateMap)
                     }
 
                 }
@@ -404,7 +424,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             currentTime="$hour12hrs : $minutes AM"
         else
             currentTime="$hour12hrs : $minutes PM"
-        idMsg = objChat!!.push()?.key.toString()
+        val idMsg = objChat!!.push()?.key.toString()
         msgModel = ChatModel(
             idMsg,
             myImage,

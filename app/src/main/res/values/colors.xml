@@ -9,4 +9,5 @@
     <color name="mainColor">#005D4B</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="iconsColor">#9EA2A6</color>
 </resources>
