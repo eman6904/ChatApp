@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.fragments
+package com.example.chatapp.ui.userInterface.ui.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment

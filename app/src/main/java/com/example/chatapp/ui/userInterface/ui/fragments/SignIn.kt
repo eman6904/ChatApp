@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.fragments
+package com.example.chatapp.ui.userInterface.ui.fragments
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -9,7 +9,7 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentSignInBinding
-import com.example.chatapp.ui.userInterface.model.UserItems
+import com.example.chatapp.ui.userInterface.ui.model.UserItems
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
@@ -103,12 +103,12 @@ class SignIn : Fragment(R.layout.fragment_sign_in) {
         var user= UserItems(currentUserId,username,"","","","")
         obj?.child(currentUserId)?.setValue(user)
     }
-    override fun onStart() {
-        super.onStart()
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        if (currentUser != null) {
-            navController.navigate(R.id.action_signIn_to_users)
-        }
-    }
+//    override fun onStart() {
+//        super.onStart()
+//        val currentUser = FirebaseAuth.getInstance().currentUser
+//        if (currentUser != null) {
+//            navController.navigate(R.id.action_signIn_to_users)
+//        }
+//    }
 
 }

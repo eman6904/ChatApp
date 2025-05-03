@@ -118,26 +118,41 @@
         android:layout_alignParentTop="true"
         android:background="@drawable/msg_left"
         android:visibility="visible"
-        android:layout_marginStart="@dimen/_8sdp"
+        android:padding="@dimen/_4sdp"
+        android:layout_marginTop="@dimen/_2sdp"
+        android:layout_marginStart="@dimen/_12sdp"
         android:orientation="horizontal">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
             android:layout_weight="1"
-            android:layout_margin="@dimen/_4sdp">
+            android:layout_margin="@dimen/_6sdp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_height="match_parent">
-                <ImageView
-                    android:id="@+id/play_icon"
-                    android:layout_width="@dimen/_15sdp"
-                    android:layout_height="@dimen/_20sdp"
-                    app:tint="@color/iconsColor"
-                    android:background="@android:color/transparent"
-                    android:src="@drawable/play_icon" />
+                <FrameLayout
+                    android:id="@+id/play_record"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/pause_icon"
+                        android:layout_width="@dimen/_15sdp"
+                        android:layout_height="@dimen/_20sdp"
+                        android:visibility="gone"
+                        app:tint="@color/iconsColor"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/pause_icon" />
+                    <ImageView
+                        android:id="@+id/play_icon"
+                        android:layout_width="@dimen/_15sdp"
+                        android:layout_height="@dimen/_20sdp"
+                        app:tint="@color/iconsColor"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/play_icon" />
+                </FrameLayout>
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -153,8 +168,8 @@
                         android:progressDrawable="@drawable/left_progress_drawable" />
                     <View
                         android:id="@+id/thumbDot"
-                        android:layout_width="@dimen/_6sdp"
-                        android:layout_height="@dimen/_6sdp"
+                        android:layout_width="@dimen/_8sdp"
+                        android:layout_height="@dimen/_8sdp"
                         android:layout_gravity="center|start"
                         android:background="@drawable/circle" />
                 </FrameLayout>
@@ -175,7 +190,7 @@
                     android:paddingLeft="@dimen/_4sdp"
                     android:textColor="#80090909"
                     android:layout_marginEnd="@dimen/_10sdp"
-                    android:text="1:23" />
+                    android:text="" />
                 <TextView
                     android:id="@+id/record_msg_time"
                     android:layout_width="wrap_content"
@@ -206,15 +221,16 @@
                 android:layout_height="@dimen/_37sdp"
                 android:layout_gravity="center"
                 android:src="@drawable/personalphotojpg" />
+
             <ImageView
                 android:id="@+id/mic_icon"
-                android:layout_width="@dimen/_15sdp"
-                android:layout_height="@dimen/_20sdp"
-                app:tint="@color/iconsColor"
+                android:layout_width="@dimen/_22sdp"
+                android:layout_height="@dimen/_22sdp"
                 android:layout_gravity="bottom|start"
-                android:paddingBottom="@dimen/_4sdp"
                 android:background="@android:color/transparent"
-                android:src="@drawable/mic_icon" />
+                android:paddingBottom="@dimen/_4sdp"
+                android:src="@drawable/mic_icon"
+                app:tint="@color/iconsColor" />
         </FrameLayout>
     </LinearLayout>
     <com.google.android.material.card.MaterialCardView

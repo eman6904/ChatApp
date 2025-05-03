@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.fragments
+package com.example.chatapp.ui.userInterface.ui.fragments
 
 import android.app.Activity.RESULT_OK
 import android.app.AlertDialog
@@ -20,7 +20,7 @@ import androidx.navigation.Navigation
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentProfileBinding
-import com.example.chatapp.ui.userInterface.model.UserItems
+import com.example.chatapp.ui.userInterface.ui.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage

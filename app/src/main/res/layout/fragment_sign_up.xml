@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.userInterface.fragments.SignUp"
+    tools:context=".ui.userInterface.ui.fragments.SignUp"
     android:padding="@dimen/_30sdp">
 
     <TextView

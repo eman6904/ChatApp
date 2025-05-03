@@ -42,7 +42,7 @@
                android:textSize="16sp"/>
 
            <LinearLayout
-               android:layout_width="@dimen/_60sdp"
+               android:layout_width="match_parent"
                android:layout_gravity="right"
                android:gravity="center|end"
                android:padding="@dimen/_4sdp"
@@ -58,7 +58,7 @@
                    android:id="@+id/seen"
                    android:layout_width="wrap_content"
                    android:layout_height="wrap_content"
-                   android:text=" 👀"
+                   android:text="👀"
                    android:textColor="@color/white"
                    android:textSize="12sp"/>
            </LinearLayout>
@@ -132,8 +132,8 @@
                    android:src="@drawable/personalphotojpg" />
                <ImageView
                    android:id="@+id/mic_icon"
-                   android:layout_width="@dimen/_15sdp"
-                   android:layout_height="@dimen/_20sdp"
+                   android:layout_width="@dimen/_22sdp"
+                   android:layout_height="@dimen/_22sdp"
                    app:tint="@color/iconsColor"
                    android:layout_gravity="bottom|end"
                    android:paddingBottom="@dimen/_4sdp"
@@ -150,13 +150,26 @@
                    android:orientation="horizontal"
                    android:gravity="center"
                    android:layout_height="match_parent">
-                   <ImageView
-                       android:id="@+id/play_icon"
-                       android:layout_width="@dimen/_15sdp"
-                       android:layout_height="@dimen/_20sdp"
-                       app:tint="@color/iconsColor"
-                       android:background="@android:color/transparent"
-                       android:src="@drawable/play_icon" />
+                   <FrameLayout
+                       android:id="@+id/play_record"
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content">
+                       <ImageView
+                           android:id="@+id/pause_icon"
+                           android:layout_width="@dimen/_15sdp"
+                           android:layout_height="@dimen/_20sdp"
+                           android:visibility="gone"
+                           app:tint="@color/iconsColor"
+                           android:background="@android:color/transparent"
+                           android:src="@drawable/pause_icon" />
+                       <ImageView
+                           android:id="@+id/play_icon"
+                           android:layout_width="@dimen/_15sdp"
+                           android:layout_height="@dimen/_20sdp"
+                           app:tint="@color/iconsColor"
+                           android:background="@android:color/transparent"
+                           android:src="@drawable/play_icon" />
+                   </FrameLayout>
                    <FrameLayout
                        android:layout_width="match_parent"
                        android:layout_height="wrap_content"
@@ -172,8 +185,8 @@
                            android:progressDrawable="@drawable/right_progress_drawable" />
                        <View
                            android:id="@+id/thumbDot"
-                           android:layout_width="@dimen/_6sdp"
-                           android:layout_height="@dimen/_6sdp"
+                           android:layout_width="@dimen/_8sdp"
+                           android:layout_height="@dimen/_8sdp"
                            android:layout_gravity="center|start"
                            android:background="@drawable/circle" />
                    </FrameLayout>
@@ -193,7 +206,7 @@
                        android:gravity="center|right"
                        android:textColor="#80FFFFFF"
                        android:layout_marginEnd="@dimen/_10sdp"
-                       android:text="1:23" />
+                       android:text="" />
                    <TextView
                        android:id="@+id/record_msg_time"
                        android:layout_width="wrap_content"
@@ -203,7 +216,7 @@
                        android:textColor="#80FFFFFF"
                        android:textSize="@dimen/_10sdp"
                        android:layout_marginEnd="@dimen/_10sdp"
-                       android:text="8:40 pm" />
+                       android:text=" " />
                    <TextView
                        android:id="@+id/record_seen"
                        android:layout_width="wrap_content"

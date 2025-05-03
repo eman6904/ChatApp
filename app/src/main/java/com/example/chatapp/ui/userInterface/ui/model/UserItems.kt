@@ -1,4 +1,4 @@
-package com.example.chatapp.ui.userInterface.model
+package com.example.chatapp.ui.userInterface.ui.model
 
 data class UserItems(
     var id: String = "",

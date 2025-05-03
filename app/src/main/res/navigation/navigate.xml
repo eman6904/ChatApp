@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/users"
-        android:name="com.example.chatapp.ui.userInterface.fragments.Users"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.Users"
         android:label="fragment_face"
         tools:layout="@layout/users" >
         <action
@@ -19,7 +19,7 @@
     </fragment>
     <fragment
         android:id="@+id/signIn"
-        android:name="com.example.chatapp.ui.userInterface.fragments.SignIn"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.SignIn"
         android:label="SignIn" >
         <action
             android:id="@+id/action_signIn_to_users"
@@ -27,7 +27,7 @@
     </fragment>
     <fragment
         android:id="@+id/signUp"
-        android:name="com.example.chatapp.ui.userInterface.fragments.SignUp"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.SignUp"
         android:label="fragment_sign_up"
         tools:layout="@layout/fragment_sign_up" >
         <action
@@ -36,7 +36,7 @@
     </fragment>
     <fragment
         android:id="@+id/profile3"
-        android:name="com.example.chatapp.ui.userInterface.fragments.Profile"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.Profile"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" >
         <action
@@ -45,7 +45,7 @@
     </fragment>
     <fragment
         android:id="@+id/chat"
-        android:name="com.example.chatapp.ui.userInterface.fragments.Chat"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.Chat"
         android:label="fragment_chat"
         tools:layout="@layout/fragment_chat" >
         <action

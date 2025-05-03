@@ -1,7 +1,6 @@
-package com.example.chatapp.ui.userInterface.adapter
+package com.example.chatapp.ui.userInterface.ui.adapter
 import android.app.Activity
 import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
@@ -11,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.UserItemBinding
-import com.example.chatapp.ui.userInterface.model.ChatModel
-import com.example.chatapp.ui.userInterface.model.UserItems
+import com.example.chatapp.ui.userInterface.ui.model.ChatModel
+import com.example.chatapp.ui.userInterface.ui.model.UserItems
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
@@ -47,7 +46,7 @@ class UserAdapter(private val list:ArrayList<UserItems>):
                 var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
                 for (data in snapshot.children) {
                     val chat = data.getValue(ChatModel::class.java)
-                    if(chat!!.receiverid==currentUserId&&chat.senderId==list[position].id&&chat.seen==""){
+                    if(chat!!.receiverId==currentUserId&&chat.senderId==list[position].id&&chat.status==""){
                         ctr++
                     }
                 }
