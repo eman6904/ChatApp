@@ -6,5 +6,5 @@ data class RecordModel(
     val recordLocalPath:String = "",
     val recordRemoteUrl:String = "",
     val recordLength:String = "",
-    val listen:Boolean = false
+    var listen:Boolean = false
 )

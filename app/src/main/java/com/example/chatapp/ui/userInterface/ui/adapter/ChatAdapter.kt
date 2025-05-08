@@ -6,6 +6,7 @@ import android.graphics.PorterDuff
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +18,9 @@ import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.chatapp.R
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 import com.example.chatapp.ui.userInterface.localData.messages.viewModel.MessageViewModel
@@ -27,213 +30,169 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
 import java.io.File
 import java.util.HashMap
+class ChatAdapter(
+    private val context: Context,
+    private val chatList: List<MessageTable>,
+    private val listenRecords: ArrayList<MessageTable>,
+    private val viewModel: MessageViewModel
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-
-class ChatAdapter(private val context: Context, private val chatList: List<MessageTable>,private val viewModel:MessageViewModel) : BaseAdapter() {
-    private val RIGHT=0
-    private val LEFT=1
-    private var isPlaying = false
-    private var firebaseUser: FirebaseUser? = null
-    private var mediaPlayer: MediaPlayer? = null
-    private var objChat = FirebaseDatabase.getInstance().getReference("Chat")
-    var currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
-    private val inflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)
-            as LayoutInflater
-
-    override fun getCount(): Int {
-        return chatList.size
+    companion object {
+        private const val RIGHT = 0
+        private const val LEFT = 1
     }
 
-    override fun getItem(p0: Int): Any {
-        return  chatList[p0]
+    override fun getItemViewType(position: Int): Int {
+        return if (chatList[position].senderId == FirebaseAuth.getInstance().currentUser!!.uid) RIGHT else LEFT
     }
 
-    override fun getItemId(p0: Int): Long {
-        return p0.toLong()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val layoutId = if (viewType == RIGHT) R.layout.item_right else R.layout.item_left
+        val view = LayoutInflater.from(context).inflate(layoutId, parent, false)
+        return ChatViewHolder(view)
     }
-    override fun getView(position: Int, converterView: View?, p2: ViewGroup?): View {
-        var view:View
-        val item: MessageTable = getItem(position) as MessageTable
-            val type = getItemViewType(position)
-            if (type == RIGHT) {
 
-                view = LayoutInflater.from(context).inflate(R.layout.item_right,p2,false)
-            } else {
-                view = LayoutInflater.from(context).inflate(R.layout.item_left,p2,false)
-            }
-        var action=view.findViewById<TextView>(R.id.action)
-        var tail=view.findViewById<ImageView>(R.id.tail)
-        val text_msg = view.findViewById<LinearLayout>(R.id.text_msg)
-        val image_msg = view.findViewById<LinearLayout>(R.id.image_msg)
-        val record_msg = view.findViewById<LinearLayout>(R.id.record_msg)
-        var actionBackground=view.findViewById<CardView>(R.id.actionBackground)
-        if(item.action.isNotEmpty()){
-            actionBackground.isVisible = true
-            action.text = item.action
-        }else{
-            actionBackground.isVisible = false
+    override fun getItemCount(): Int = chatList.size
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        if (holder is ChatViewHolder) {
+            holder.bind(chatList[position], position)
         }
-        if(position>0&&getItemViewType(position)==getItemViewType(position-1))
-            tail.isVisible = false
-        else
-            tail.isVisible = true
+    }
 
-        if(item.msgType =="text"){
+    inner class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        fun bind(item: MessageTable, position: Int) {
+            val action = itemView.findViewById<TextView>(R.id.action)
+            val tail = itemView.findViewById<ImageView>(R.id.tail)
+            val actionBackground = itemView.findViewById<CardView>(R.id.actionBackground)
 
-            image_msg.isVisible = false
-            record_msg.isVisible = false
-            text_msg.isVisible = true
+            actionBackground.isVisible = item.action.isNotEmpty()
+            action.text = item.action
 
-            var msg=view.findViewById<TextView>(R.id.text_message_body)
-            var time=view.findViewById<TextView>(R.id.text_message_time)
-            var seen=view.findViewById<TextView>(R.id.seen)
-            msg.text=item.textMsg
-            time.text=item.time
-            if(type==RIGHT)
-            {
-                if(item.status=="seen")
-                    seen.isVisible=true
-                else
-                    seen.isVisible=false
+            tail.isVisible = !(position > 0 && getItemViewType(position) == getItemViewType(position - 1))
+
+            when (item.msgType) {
+                "text" -> bindTextMessage(item)
+                "image" -> bindImageMessage(item)
+                else -> bindRecordMessage(item)
             }
-            return view
-        }else if(item.msgType == "image"){
+        }
 
-            image_msg.isVisible = true
-            text_msg.isVisible = false
-            record_msg.isVisible = false
+        private fun bindTextMessage(item: MessageTable) {
+            itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = true
+            itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
 
-            var time=view.findViewById<TextView>(R.id.image_msg_time)
-            var image=view.findViewById<ImageView>(R.id.image)
-            var seen=view.findViewById<TextView>(R.id.image_seen)
-            if (context is Activity && !context.isDestroyed)
-            {
-                if(viewModel.isConnected.value == true) {
-                    Glide.with(context).asBitmap()
-                        .load(Uri.parse(item.imageMsg.imageRemoteUrl))
-                        .placeholder(R.drawable.progress_animation)
-                        .error(R.drawable.progress_animation)
-                        .into(image)
-                }else {
-                    Glide.with(context)
-                        .asBitmap()
-                        .load(File(item.imageMsg.imageLocalPath))
-                        .placeholder(R.drawable.progress_animation)
-                        .error(R.drawable.progress_animation)
-                        .into(image)
-                }
+            itemView.findViewById<TextView>(R.id.text_message_body).text = item.textMsg
+            itemView.findViewById<TextView>(R.id.text_message_time).text = item.time
 
+            val seen = itemView.findViewById<TextView>(R.id.seen)
+            seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+        }
+
+        private fun bindImageMessage(item: MessageTable) {
+            itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = true
+            itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
+
+            if (context is Activity && !context.isDestroyed) {
+                Glide.with(context)
+                    .load(File(item.imageMsg.imageLocalPath))
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.progress_animation)
+                    .error(R.drawable.progress_animation)
+                    .into(itemView.findViewById(R.id.image))
             }
-            time.text=item.time
-            if(type==RIGHT)
-            {
-                if(item.status=="seen")
-                    seen.isVisible=true
-                else
-                    seen.isVisible=false
-            }
-            return view
-        }else{
-            image_msg.isVisible = false
-            text_msg.isVisible = false
-            record_msg.isVisible = true
 
-            var time=view.findViewById<TextView>(R.id.record_msg_time)
-            var play_icon=view.findViewById<ImageView>(R.id.play_icon)
-            var pause_icon=view.findViewById<ImageView>(R.id.pause_icon)
-            var mic_icon = view.findViewById<ImageView>(R.id.mic_icon)
-            var thumb_dot = view.findViewById<View>(R.id.thumbDot)
-            var seen=view.findViewById<TextView>(R.id.record_seen)
-            val background = thumb_dot.background as GradientDrawable
+            itemView.findViewById<TextView>(R.id.image_msg_time).text = item.time
+            val seen = itemView.findViewById<TextView>(R.id.image_seen)
+            seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+        }
 
-            if(item.recordMsg.listen){
-                mic_icon.setColorFilter(ContextCompat.getColor(context, R.color.listenRecordColor), PorterDuff.Mode.SRC_IN)
-                pause_icon.setColorFilter(ContextCompat.getColor(context, R.color.listenRecordColor), PorterDuff.Mode.SRC_IN)
-                play_icon.setColorFilter(ContextCompat.getColor(context, R.color.listenRecordColor), PorterDuff.Mode.SRC_IN)
-                background.setColor(ContextCompat.getColor(context, R.color.listenRecordColor))
-            }else{
-                mic_icon.setColorFilter(ContextCompat.getColor(context, R.color.iconsColor), PorterDuff.Mode.SRC_IN)
-                pause_icon.setColorFilter(ContextCompat.getColor(context, R.color.iconsColor), PorterDuff.Mode.SRC_IN)
-                play_icon.setColorFilter(ContextCompat.getColor(context, R.color.iconsColor), PorterDuff.Mode.SRC_IN)
-                background.setColor(ContextCompat.getColor(context, R.color.iconsColor))
+        private fun bindRecordMessage(item: MessageTable) {
+            itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = true
+
+            val playIcon = itemView.findViewById<ImageView>(R.id.play_icon)
+            val pauseIcon = itemView.findViewById<ImageView>(R.id.pause_icon)
+            val micIcon = itemView.findViewById<ImageView>(R.id.mic_icon)
+            val thumbDot = itemView.findViewById<View>(R.id.thumbDot)
+            val background = thumbDot.background as GradientDrawable
+
+            val color = if (item.recordMsg.listen) R.color.listenRecordColor else R.color.iconsColor
+            listOf(playIcon, pauseIcon, micIcon).forEach {
+                it.setColorFilter(ContextCompat.getColor(context, color), PorterDuff.Mode.SRC_IN)
             }
-            record_msg.setOnClickListener {
-                if(!isPlaying){
-                    playAudioFromUrl(
-                        url = item.recordMsg.recordRemoteUrl,
-                        setPlayIcon = {
-                                play,pause ->
-                            pause_icon.isVisible = pause
-                            play_icon.isVisible = play
+            background.setColor(ContextCompat.getColor(context, color))
+
+            if (AudioPlayerManager.currentPath == item.recordMsg.recordLocalPath) {
+                pauseIcon.isVisible = true
+                playIcon.isVisible = false
+            } else {
+                pauseIcon.isVisible = false
+                playIcon.isVisible = true
+            }
+
+            itemView.findViewById<LinearLayout>(R.id.record_msg).setOnClickListener {
+
+
+                if (AudioPlayerManager.currentPath != item.recordMsg.recordLocalPath) {
+                    AudioPlayerManager.play(
+                        path = item.recordMsg.recordLocalPath,
+                        clearPath = {
+                            notifyItemChanged(AudioPlayerManager.previusPosition!!)
                         }
                     )
-                    pause_icon.isVisible = true
-                    play_icon.isVisible = false
-                }else{
-                    stopAudio()
-                    pause_icon.isVisible = false
-                    play_icon.isVisible = true
+                    if (FirebaseAuth.getInstance().currentUser?.uid == item.receiverId && !item.recordMsg.listen) {
+                        item.recordMsg.listen = true
+                        notifyItemChanged(position)
+                        listenRecords.add(item)
+                    }
+                    AudioPlayerManager.previusPosition?.let {
+                        notifyItemChanged(AudioPlayerManager.previusPosition!!)
+                    }
+                    AudioPlayerManager.previusPosition = position
+                    pauseIcon.isVisible = true
+                    playIcon.isVisible = false
+
+                } else {
+                    pauseIcon.isVisible = false
+                    playIcon.isVisible = true
+                    AudioPlayerManager.stop()
+
                 }
-                if(currentUserId==item.receiverId && item.recordMsg.listen==false) {
-                    setListen(
-                        item = item,
-                        view = view
-                    )
+            }
+
+            itemView.findViewById<TextView>(R.id.record_msg_time).text = item.time
+            val seen = itemView.findViewById<TextView>(R.id.record_seen)
+            seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+        }
+    }
+
+    object AudioPlayerManager {
+        private var mediaPlayer: MediaPlayer? = null
+        var currentPath: String? = null
+        var previusPosition: Int? = null
+
+        fun play(path: String,clearPath:()->Unit) {
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(path)
+                prepare()
+                start()
+                setOnCompletionListener {
+                    currentPath = null
+                    clearPath()
                 }
-                isPlaying=!isPlaying
             }
-            time.text=item.time
-            if(type==RIGHT)
-            {
-                if(item.status=="seen")
-                    seen.isVisible=true
-                else
-                    seen.isVisible=false
-            }
-            return view
+            currentPath = path
         }
 
-    }
-    override fun getItemViewType(position: Int): Int {
-        firebaseUser = FirebaseAuth.getInstance().currentUser
-        if (chatList[position].senderId == firebaseUser!!.uid) {
-            return RIGHT
-        } else {
-            return LEFT
-        }
-    }
-    private fun playAudioFromUrl(url: String, setPlayIcon:(play:Boolean, Pause:Boolean)->Unit) {
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setDataSource(url)
-            prepareAsync()
-            setOnPreparedListener {
-                it.start()
-            }
-            setOnCompletionListener {
-                setPlayIcon(true,false)
-            }
-        }
-    }
-    private fun stopAudio() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.stop()
-            }
-            it.release()
+        fun stop() {
+            mediaPlayer?.release()
             mediaPlayer = null
+            currentPath = null
         }
     }
-    private fun setListen(item: MessageTable, view: View){
-        val hashMap: HashMap<String, Any> = HashMap()
-        hashMap.put(
-            "recordMsg",
-            RecordModel(item.recordMsg.recordRemoteUrl, item.recordMsg.recordLength, "",true)
-        )
-        objChat.child(item.msgId).updateChildren(hashMap as Map<String, Any>)
-            ?.addOnFailureListener {
-                Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
-            }
-    }
-
 }

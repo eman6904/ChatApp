@@ -30,6 +30,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
 import com.example.chatapp.databinding.FragmentChatBinding
@@ -48,12 +50,15 @@ import kotlinx.coroutines.CoroutineScope
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
+import kotlin.collections.ArrayList
 
 class Chat : Fragment(R.layout.fragment_chat) {
     private lateinit var binding: FragmentChatBinding
     private lateinit var navController: NavController
     private lateinit var chatListener: ValueEventListener
-    private lateinit var messagesList: List<MessageTable>
+    private lateinit var messagesList: ArrayList<MessageTable>
+    private lateinit var listenedRecords: ArrayList<MessageTable>
+    private lateinit var chatAdapter: ChatAdapter
     var msgModel: MessageTable? = null
     var storage: StorageReference? = null
     var uriImage: Uri? = null
@@ -61,10 +66,11 @@ class Chat : Fragment(R.layout.fragment_chat) {
     var objChat: DatabaseReference? = null
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
-    var senderId:String=""
-    var receiverId:String=""
-    var myImage:String=""
-    val viewModel :MessageViewModel by viewModels()
+    var senderId: String = ""
+    var receiverId: String = ""
+    var myImage: String = ""
+    var isUserScrolling = false
+    val viewModel: MessageViewModel by viewModels()
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChatBinding.bind(view)
@@ -91,21 +97,26 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     binding.recordingContainer.isVisible = false
                     binding.msgContainer.isVisible = true
                     stopRecording()
+                    prepareMsg(
+                        msgType = "record"
+                    )
                     uploadVoiceMessage(
-                        onSuccess = { url ->
-                            // هنا تستخدمي الرابط
-                           prepareMsg(
-                               msgType = "record"
-                           )
-                            if(msgModel!=null){
-                                msgModel!!.recordMsg = RecordModel(url,"","",false)
-                                objChat!!.child(msgModel!!.msgId).setValue(
-                                    msgModel
+                        onSuccess = { remoteUrl ->
+                            if (msgModel != null) {
+                                msgModel!!.recordMsg = RecordModel(
+                                    msgModel!!.recordMsg.recordLocalPath,
+                                    remoteUrl,
+                                    "",
+                                    false
+                                )
+                                viewModel.insertMessage(
+                                    msg = msgModel!!
                                 )
                             }
                         },
                         onFailure = {
-                            Toast.makeText(requireContext(), "فشل في الرفع", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(requireContext(), "فشل في الرفع", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     )
 
@@ -124,12 +135,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
-                if(binding.messageInput.text.toString().isNotEmpty()){
+                if (binding.messageInput.text.toString().isNotEmpty()) {
 
                     binding.micIcon.isVisible = false
                     binding.cameraIcon.isVisible = false
                     binding.sendIcon.isVisible = true
-                }else{
+                } else {
 
                     binding.micIcon.isVisible = true
                     binding.cameraIcon.isVisible = true
@@ -141,159 +152,159 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
             }
         })
-       /////////////////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////////////////
         //for react with message
-        binding.listview.onItemClickListener=object :AdapterView.OnItemClickListener{
-            override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-
-                val alertbuilder2 = AlertDialog.Builder(requireContext())
-                val view2 = layoutInflater.inflate(R.layout.interaction, null)
-                alertbuilder2.setView(view2)
-                val alertDialog2 = alertbuilder2.create()
-                alertDialog2.show()
-
-                var like=view2.findViewById<TextView>(R.id.like)
-                var love=view2.findViewById<TextView>(R.id.love)
-                var waw=view2.findViewById<TextView>(R.id.waw)
-                var haha=view2.findViewById<TextView>(R.id.haha)
-                var sad=view2.findViewById<TextView>(R.id.sad)
-
-                var message=messagesList.get(position)
-                var react=""
-                like.setOnClickListener()
-                {
-                    react=like.text.toString()
-                    if(message.action==react)
-                        message.action=""
-                    else
-                        message.action=react
-                    objChat?.child(message.msgId)?.setValue(message)
-                    alertDialog2.dismiss()
-                }
-                love.setOnClickListener()
-                {
-                    react=love.text.toString()
-                    if(message.action==react)
-                        message.action=""
-                    else
-                        message.action=react
-                    objChat?.child(message.msgId)?.setValue(message)
-                    alertDialog2.dismiss()
-                }
-                waw.setOnClickListener()
-                {
-                    react=waw.text.toString()
-                    if(message.action==react)
-                        message.action=""
-                    else
-                        message.action=react
-                    objChat?.child(message.msgId)?.setValue(message)
-                    alertDialog2.dismiss()
-                }
-                haha.setOnClickListener()
-                {
-                    react=haha.text.toString()
-                    if(message.action==react)
-                        message.action=""
-                    else
-                        message.action=react
-                    objChat?.child(message.msgId)?.setValue(message)
-                    alertDialog2.dismiss()
-                }
-                sad.setOnClickListener()
-                {
-                    react=sad.text.toString()
-                    if(message.action==react)
-                        message.action=""
-                    else
-                        message.action=react
-                    objChat?.child(message.msgId)?.setValue(message)
-                    alertDialog2.dismiss()
-                }
-            }
-
-        }
+//        binding.listview.onItemClickListener=object :AdapterView.OnItemClickListener{
+//            override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+//
+//                val alertbuilder2 = AlertDialog.Builder(requireContext())
+//                val view2 = layoutInflater.inflate(R.layout.interaction, null)
+//                alertbuilder2.setView(view2)
+//                val alertDialog2 = alertbuilder2.create()
+//                alertDialog2.show()
+//
+//                var like=view2.findViewById<TextView>(R.id.like)
+//                var love=view2.findViewById<TextView>(R.id.love)
+//                var waw=view2.findViewById<TextView>(R.id.waw)
+//                var haha=view2.findViewById<TextView>(R.id.haha)
+//                var sad=view2.findViewById<TextView>(R.id.sad)
+//
+//                var message=messagesList.get(position)
+//                var react=""
+//                like.setOnClickListener()
+//                {
+//                    react=like.text.toString()
+//                    if(message.action==react)
+//                        message.action=""
+//                    else
+//                        message.action=react
+//                    objChat?.child(message.msgId)?.setValue(message)
+//                    alertDialog2.dismiss()
+//                }
+//                love.setOnClickListener()
+//                {
+//                    react=love.text.toString()
+//                    if(message.action==react)
+//                        message.action=""
+//                    else
+//                        message.action=react
+//                    objChat?.child(message.msgId)?.setValue(message)
+//                    alertDialog2.dismiss()
+//                }
+//                waw.setOnClickListener()
+//                {
+//                    react=waw.text.toString()
+//                    if(message.action==react)
+//                        message.action=""
+//                    else
+//                        message.action=react
+//                    objChat?.child(message.msgId)?.setValue(message)
+//                    alertDialog2.dismiss()
+//                }
+//                haha.setOnClickListener()
+//                {
+//                    react=haha.text.toString()
+//                    if(message.action==react)
+//                        message.action=""
+//                    else
+//                        message.action=react
+//                    objChat?.child(message.msgId)?.setValue(message)
+//                    alertDialog2.dismiss()
+//                }
+//                sad.setOnClickListener()
+//                {
+//                    react=sad.text.toString()
+//                    if(message.action==react)
+//                        message.action=""
+//                    else
+//                        message.action=react
+//                    objChat?.child(message.msgId)?.setValue(message)
+//                    alertDialog2.dismiss()
+//                }
+//            }
+//
+//        }
         //////////////////////////////////////////////////////////////////////////////////
         //attachment bottom sheet
         binding.attachIcon.setOnClickListener {
             attachmentBottomSheetPopup(requireContext())
         }
         //////////////////////////////////////////////////////////////////////////////////
-        //for delete or update msg
-        binding.listview.onItemLongClickListener=object :AdapterView.OnItemLongClickListener{
-            override fun onItemLongClick(
-                p0: AdapterView<*>?,
-                p1: View?,
-                position: Int,
-                p3: Long
-            ): Boolean {
-               if(messagesList[position].senderId==senderId)
-               {
-                   val alertbuilder = AlertDialog.Builder(requireContext())
-                   val view = layoutInflater.inflate(R.layout.about_message, null)
-                   alertbuilder.setView(view)
-                   val alertDialog = alertbuilder.create()
-                   alertDialog.show()
-
-                   val delete = view.findViewById<ImageView>(R.id.delete)
-                   val update = view.findViewById<ImageView>(R.id.update)
-                   val edMsg = view.findViewById<EditText>(R.id.edMsg)
-
-                   var message=messagesList.get(position)
-                   edMsg.setText(message.textMsg)
-
-                   update.setOnClickListener()
-                   {
-                       message.textMsg=edMsg.text.toString()
-                       objChat?.child(message.msgId)?.setValue(message)
-                       alertDialog.dismiss()
-                   }
-                   delete.setOnClickListener(){
-                       objChat?.child(message.msgId)?.removeValue()
-                       alertDialog.dismiss()
-                   }
-               }
-                return false
-            }
-
-        }
-       ///////////////////////////////////////////////////////////////////////////////////
-        binding.arrowBack.setOnClickListener(){
+//        //for delete or update msg
+//        binding.listview.onItemLongClickListener=object :AdapterView.OnItemLongClickListener{
+//            override fun onItemLongClick(
+//                p0: AdapterView<*>?,
+//                p1: View?,
+//                position: Int,
+//                p3: Long
+//            ): Boolean {
+//               if(messagesList[position].senderId==senderId)
+//               {
+//                   val alertbuilder = AlertDialog.Builder(requireContext())
+//                   val view = layoutInflater.inflate(R.layout.about_message, null)
+//                   alertbuilder.setView(view)
+//                   val alertDialog = alertbuilder.create()
+//                   alertDialog.show()
+//
+//                   val delete = view.findViewById<ImageView>(R.id.delete)
+//                   val update = view.findViewById<ImageView>(R.id.update)
+//                   val edMsg = view.findViewById<EditText>(R.id.edMsg)
+//
+//                   var message=messagesList.get(position)
+//                   edMsg.setText(message.textMsg)
+//
+//                   update.setOnClickListener()
+//                   {
+//                       message.textMsg=edMsg.text.toString()
+//                       objChat?.child(message.msgId)?.setValue(message)
+//                       alertDialog.dismiss()
+//                   }
+//                   delete.setOnClickListener(){
+//                       objChat?.child(message.msgId)?.removeValue()
+//                       alertDialog.dismiss()
+//                   }
+//               }
+//                return false
+//            }
+//
+//        }
+        ///////////////////////////////////////////////////////////////////////////////////
+        binding.arrowBack.setOnClickListener() {
             navController.navigate(R.id.action_chat_to_users)
         }
-        receiverId=arguments?.getString("id").toString()
+        receiverId = arguments?.getString("id").toString()
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(receiverId)
         objUsers?.addValueEventListener(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
-                if(isAdded)
-                Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
+                if (isAdded)
+                    Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(UserItems::class.java)
-                binding.username.text=user!!.username
-                if(isAdded){
+                binding.username.text = user!!.username
+                if (isAdded) {
                     Glide.with(requireContext()).asBitmap().load(Uri.parse(user.profilePhoto))
                         .placeholder(R.drawable.personalphotojpg).into(binding.userImage)
                 }
             }
         })
         ////////////////////////////////////////////////////////////////////////////////////
-        senderId=FirebaseAuth.getInstance()?.currentUser!!.uid
+        senderId = FirebaseAuth.getInstance()?.currentUser!!.uid
         getMyImage()
         //for send message
         binding.send.setOnClickListener()
         {
-            if(binding.messageInput.text.isEmpty())
-                Toast.makeText(requireContext(),"Message is empty",Toast.LENGTH_LONG).show()
+            if (binding.messageInput.text.isEmpty())
+                Toast.makeText(requireContext(), "Message is empty", Toast.LENGTH_LONG).show()
             else {
                 prepareMsg(
                     msgType = "text"
                 )
-                if(msgModel!=null){
+                if (msgModel != null) {
                     msgModel!!.textMsg = binding.messageInput.text.toString()
                     viewModel.insertMessage(msgModel!!)
-                    if(viewModel.isConnected.value == true){
+                    if (viewModel.isConnected.value == true) {
 
                         viewModel.uploadPendingMessages()
                         viewModel.downloadMessagesFromFirebase()
@@ -303,84 +314,97 @@ class Chat : Fragment(R.layout.fragment_chat) {
             }
         }
     }
+
     override fun onStart() {
         super.onStart()
-        ///////////////////////////////////////////////////////////////////////////////
-        //to observe network connection
-        viewModel.isConnected.observe(viewLifecycleOwner){ isConeected->
-            Log.d("connections",isConeected.toString())
-            if(isConeected){
+
+        listenedRecords = ArrayList()
+
+        readMessage()
+
+        viewModel.startNetworkMonitoring()
+
+        binding.progressBar.isVisible = false
+        messagesList = ArrayList()
+        binding.listview.layoutManager = LinearLayoutManager(requireContext())
+
+        chatAdapter = ChatAdapter(requireContext(), messagesList, listenedRecords, viewModel)
+        binding.listview.adapter = chatAdapter
+
+        viewModel.messages.observe(viewLifecycleOwner) { messages ->
+
+            if (viewModel.isConnected.value == true) {
                 viewModel.uploadPendingMessages()
                 viewModel.downloadMessagesFromFirebase()
             }
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////
-        //to set message as read
-        readMessage()
-        //to update chat
-        viewModel.startNetworkMonitoring()
-        binding.progressBar.isVisible = false
 
-        viewModel.messages.observe(viewLifecycleOwner){ messages->
-
-            messagesList = messages.filter { msg ->
-                msg.senderId.equals(senderId) && msg.receiverId.equals(receiverId) ||
-                        msg.senderId.equals(receiverId) && msg.receiverId.equals(senderId)
+            val filteredMessages = messages.filter { msg ->
+                (msg.senderId == senderId && msg.receiverId == receiverId) ||
+                        (msg.senderId == receiverId && msg.receiverId == senderId)
             }
-            if(isAdded){
-                Log.d("messages",messages.toString())
 
-                val adapter = ChatAdapter(requireContext(),messagesList,viewModel)
-                binding.listview.adapter = adapter
-                binding.listview.post {
-                    binding.listview.setSelection(messagesList.size - 1)
+            if (isAdded) {
+                val oldSize = messagesList.size
+                val newMessages = filteredMessages.drop(oldSize)
+
+                if (newMessages.isNotEmpty()) {
+                    messagesList.addAll(newMessages)
+                    chatAdapter.notifyItemRangeInserted(oldSize, newMessages.size)
+
+                    binding.listview.post {
+                        if (!isUserScrolling) {
+                            binding.listview.scrollToPosition(messagesList.size - 1)
+                        }
+                    }
+
+                    if (messagesList.isNotEmpty()) {
+                        val lastMsg = messagesList.last()
+                        setLastMsg(lastMsg.textMsg, lastMsg.time)
+                    }
                 }
-                if(messagesList.size>=1)
-                    setLastMsg(messagesList[messagesList.size-1].textMsg,messagesList[messagesList.size-1].time)
-                else
-                    setLastMsg("  ","  ")
-                adapter.notifyDataSetChanged()
             }
-
-
         }
     }
 
-    private fun getMyImage()
-    {
+    private fun getMyImage() {
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(senderId)
         objUsers?.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
-               if(isAdded)
-                   Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
+                if (isAdded)
+                    Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
 
             override fun onDataChange(snapshot: DataSnapshot) {
                 val user = snapshot.getValue(UserItems::class.java)
-                myImage=user!!.profilePhoto
+                myImage = user!!.profilePhoto
             }
         })
     }
-    private fun readMessage()
-    {
+
+    private fun readMessage() {
         chatListener = object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
-                if(isAdded)
+                if (isAdded)
                     Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
             override fun onDataChange(snapshot: DataSnapshot) {
-                senderId= FirebaseAuth.getInstance().currentUser!!.uid
-                receiverId=arguments?.getString("id").toString()
+                senderId = FirebaseAuth.getInstance().currentUser!!.uid
+                receiverId = arguments?.getString("id").toString()
                 for (data in snapshot.children) {
                     val chat = data.getValue(ChatModel::class.java)
                     if (chat != null) {
                         if (chat.senderId.equals(receiverId) && chat.receiverId.equals(senderId)) {
                             val hashMap: HashMap<String, Any> = HashMap()
                             hashMap.put("status", "seen")
-                            objChat?.child(chat.msgId)?.updateChildren(hashMap as Map<String, Any>)?.addOnFailureListener {
-                                if(isAdded)
-                                    Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
-                            }
+                            objChat?.child(chat.msgId)?.updateChildren(hashMap as Map<String, Any>)
+                                ?.addOnFailureListener {
+                                    if (isAdded)
+                                        Toast.makeText(
+                                            view!!.context,
+                                            it.message,
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                }
 
                         }
                     }
@@ -389,8 +413,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
         }
         objChat?.addValueEventListener(chatListener)
     }
-    private fun setLastMsg(lastMsg:String,currentTime:String)
-    {
+
+    private fun setLastMsg(lastMsg: String, currentTime: String) {
         objUsers = FirebaseDatabase.getInstance().getReference("User").child(senderId)
         val hashMap: HashMap<String, Any> = HashMap()
         hashMap.put("msg", lastMsg)
@@ -406,40 +430,44 @@ class Chat : Fragment(R.layout.fragment_chat) {
             Toast.makeText(view!!.context, it.message, Toast.LENGTH_LONG).show()
         }
     }
+
     // to upload image from gallery to send it in chat
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 2 && resultCode == RESULT_OK) {
 
             uriImage = data?.data
-            if(uriImage!=null&&isAdded){
+            if (uriImage != null && isAdded) {
                 prepareMsg(
                     msgType = "image"
                 )
-                if(msgModel!=null) {
-                   msgModel!!.imageMsg.imageLocalPath = copyImageToAppStorage(requireContext(),uriImage!!).toString()
+                if (msgModel != null) {
+                    msgModel!!.imageMsg.imageLocalPath =
+                        copyImageToAppStorage(requireContext(), uriImage!!).toString()
                     viewModel.insertMessage(msgModel!!)
                 }
             }
-            storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)?.addOnSuccessListener { taskSnapshot ->
-                taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
-                    if(msgModel!=null) {
-                        msgModel!!.imageMsg.imageRemoteUrl = uri.toString()
-                        viewModel.insertMessage(msgModel!!)
+            storage?.child("image/" + UUID.randomUUID().toString())?.putFile(uriImage!!)
+                ?.addOnSuccessListener { taskSnapshot ->
+                    taskSnapshot.metadata!!.reference!!.downloadUrl.addOnSuccessListener { uri ->
+                        if (msgModel != null) {
+                            msgModel!!.imageMsg.imageRemoteUrl = uri.toString()
+                            viewModel.insertMessage(msgModel!!)
+                        }
+
                     }
+                    // Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
 
-                }
-               // Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
-
-            }?.addOnFailureListener(){
-                Toast.makeText(requireContext(),it.message,Toast.LENGTH_LONG).show()
+                }?.addOnFailureListener() {
+                Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
             }
         }
 
     }
+
     private fun attachmentBottomSheetPopup(
-        context:Context
-    ){
+        context: Context
+    ) {
 
         val popupView = LayoutInflater.from(context).inflate(R.layout.attachment_bottom_sheet, null)
         val screenWidth = Resources.getSystem().displayMetrics.widthPixels
@@ -465,7 +493,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
         val editTextX = location[0]
         val editTextY = location[1]
 
-        popupWindow.showAtLocation( binding.messageInput, Gravity.NO_GRAVITY, editTextX, editTextY - popupView.measuredHeight)
+        popupWindow.showAtLocation(
+            binding.messageInput,
+            Gravity.NO_GRAVITY,
+            editTextX,
+            editTextY - popupView.measuredHeight
+        )
 
         val gallery = popupView.findViewById<CardView>(R.id.gallery)
         gallery.setOnClickListener {
@@ -475,33 +508,41 @@ class Chat : Fragment(R.layout.fragment_chat) {
             popupWindow.dismiss()
         }
     }
-    private fun prepareMsg(msgType:String){
-        var currentTime:String=""
-        var calendar=Calendar.getInstance()
+
+    private fun prepareMsg(msgType: String) {
+        var currentTime: String = ""
+        var calendar = Calendar.getInstance()
         val hour12hrs: Int = calendar.get(Calendar.HOUR)
         val minutes: Int = calendar.get(Calendar.MINUTE)
-        if(calendar.get(Calendar.AM_PM) == Calendar.AM)
-            currentTime="$hour12hrs : $minutes AM"
+        if (calendar.get(Calendar.AM_PM) == Calendar.AM)
+            currentTime = "$hour12hrs : $minutes AM"
         else
-            currentTime="$hour12hrs : $minutes PM"
+            currentTime = "$hour12hrs : $minutes PM"
         val msgId = objChat!!.push()?.key.toString()
         msgModel = MessageTable(
             msgId = msgId,
             msgType = msgType,
             profileImage = myImage,
             textMsg = "",
-            imageMsg = ImageModel("",""),
-            recordMsg = RecordModel("","","",false),
+            imageMsg = ImageModel("", ""),
+            recordMsg = RecordModel("", "", "", false),
             senderId = senderId,
-            receiverId = receiverId
-            , time =currentTime , action = "", status = ""
+            receiverId = receiverId, time = currentTime, action = "", status = ""
         )
     }
+
     override fun onStop() {
         super.onStop()
         objChat?.removeEventListener(chatListener)
         viewModel.stopNetworkMonitoring()
     }
+
+    override fun onPause() {
+        super.onPause()
+        for (msg in listenedRecords)
+            viewModel.updateMessage(msg)
+    }
+
     private fun startRecording(context: Context) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
@@ -511,7 +552,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 arrayOf(Manifest.permission.RECORD_AUDIO),
                 100
             )
-            Toast.makeText(context, "Please allow microphone permission first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Please allow microphone permission first", Toast.LENGTH_SHORT)
+                .show()
             return
         }
         val fileName = "record_${System.currentTimeMillis()}.mp3"
@@ -534,27 +576,34 @@ class Chat : Fragment(R.layout.fragment_chat) {
         }
         mediaRecorder = null
     }
-  private fun uploadVoiceMessage(
-      onSuccess: (downloadUrl: String) -> Unit,
-      onFailure: (Exception) -> Unit
-  ) {
-      val storageRef = FirebaseStorage.getInstance().reference
-      val voiceRef = storageRef.child("voiceMessages/${audioFile!!.name}")
-      val uri = Uri.fromFile(audioFile)
 
-      voiceRef.putFile(uri)
-          .addOnSuccessListener {
-              voiceRef.downloadUrl.addOnSuccessListener { downloadUri ->
-                  // ممكن نحذف الملف بعد كده
-                  audioFile?.delete()
-                  onSuccess(downloadUri.toString())
-              }
-          }
-          .addOnFailureListener {
-              onFailure(it)
-          }
-  }
-  private  fun copyImageToAppStorage(context: Context, imageUri: Uri): String? {
+    private fun uploadVoiceMessage(
+        onSuccess: (remoteUrl: String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val voiceRef = storageRef.child("voiceMessages/${audioFile!!.name}")
+        val uri = Uri.fromFile(audioFile)
+        msgModel?.let {
+            msgModel = msgModel!!.copy(
+                recordMsg = msgModel!!.recordMsg.copy(recordLocalPath = uri.toString())
+            )
+            viewModel.insertMessage(
+                msgModel!!
+            )
+        }
+        voiceRef.putFile(uri)
+            .addOnSuccessListener {
+                voiceRef.downloadUrl.addOnSuccessListener { remoteUrl ->
+                    onSuccess(remoteUrl.toString())
+                }
+            }
+            .addOnFailureListener {
+                onFailure(it)
+            }
+    }
+
+    private fun copyImageToAppStorage(context: Context, imageUri: Uri): String? {
         return try {
             val inputStream = context.contentResolver.openInputStream(imageUri)
             val fileName = "IMG_${System.currentTimeMillis()}.jpg"
@@ -571,5 +620,6 @@ class Chat : Fragment(R.layout.fragment_chat) {
             null
         }
     }
+
 
 }
