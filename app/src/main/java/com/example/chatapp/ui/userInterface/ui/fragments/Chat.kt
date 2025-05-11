@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,6 +48,10 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -57,7 +62,6 @@ class Chat : Fragment(R.layout.fragment_chat) {
     private lateinit var navController: NavController
     private lateinit var chatListener: ValueEventListener
     private lateinit var messagesList: ArrayList<MessageTable>
-    private lateinit var listenedRecords: ArrayList<MessageTable>
     private lateinit var chatAdapter: ChatAdapter
     var msgModel: MessageTable? = null
     var storage: StorageReference? = null
@@ -318,42 +322,42 @@ class Chat : Fragment(R.layout.fragment_chat) {
     override fun onStart() {
         super.onStart()
 
-        listenedRecords = ArrayList()
-
         readMessage()
-
         viewModel.startNetworkMonitoring()
-
         binding.progressBar.isVisible = false
         messagesList = ArrayList()
         binding.listview.layoutManager = LinearLayoutManager(requireContext())
 
-        chatAdapter = ChatAdapter(requireContext(), messagesList, listenedRecords, viewModel)
+        chatAdapter = ChatAdapter(requireContext(), messagesList, viewModel)
         binding.listview.adapter = chatAdapter
 
-        viewModel.messages.observe(viewLifecycleOwner) { messages ->
+        viewModel.downloadMessagesFromFirebase()
 
-            if (viewModel.isConnected.value == true) {
+        lifecycleScope.launchWhenStarted {
+            viewModel.messages.collect { messages ->
                 viewModel.uploadPendingMessages()
-                viewModel.downloadMessagesFromFirebase()
-            }
+                val filteredMessages = messages.filter { msg ->
+                    (msg.senderId == senderId && msg.receiverId == receiverId) ||
+                            (msg.senderId == receiverId && msg.receiverId == senderId)
+                }
+                if (isAdded) {
+                    val oldMessages = messagesList
+                    val newMessagesList = filteredMessages
 
-            val filteredMessages = messages.filter { msg ->
-                (msg.senderId == senderId && msg.receiverId == receiverId) ||
-                        (msg.senderId == receiverId && msg.receiverId == senderId)
-            }
-
-            if (isAdded) {
-                val oldSize = messagesList.size
-                val newMessages = filteredMessages.drop(oldSize)
-
-                if (newMessages.isNotEmpty()) {
-                    messagesList.addAll(newMessages)
-                    chatAdapter.notifyItemRangeInserted(oldSize, newMessages.size)
-
-                    binding.listview.post {
-                        if (!isUserScrolling) {
-                            binding.listview.scrollToPosition(messagesList.size - 1)
+                    newMessagesList.forEachIndexed { index, newMsg ->
+                        if (index < oldMessages.size) {
+                            if (oldMessages[index] != newMsg) {
+                                oldMessages[index] = newMsg
+                                chatAdapter.notifyItemChanged(index)
+                            }
+                        } else {
+                            oldMessages.add(newMsg)
+                            chatAdapter.notifyItemInserted(index)
+                            binding.listview.post {
+                                if (!isUserScrolling) {
+                                    binding.listview.scrollToPosition(messagesList.size - 1)
+                                }
+                            }
                         }
                     }
 
@@ -361,6 +365,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                         val lastMsg = messagesList.last()
                         setLastMsg(lastMsg.textMsg, lastMsg.time)
                     }
+
                 }
             }
         }
@@ -382,11 +387,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
 
     private fun readMessage() {
+
         chatListener = object : ValueEventListener {
             override fun onCancelled(error: DatabaseError) {
                 if (isAdded)
                     Toast.makeText(requireContext(), error.message, Toast.LENGTH_SHORT).show()
             }
+
             override fun onDataChange(snapshot: DataSnapshot) {
                 senderId = FirebaseAuth.getInstance().currentUser!!.uid
                 receiverId = arguments?.getString("id").toString()
@@ -459,8 +466,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     // Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
 
                 }?.addOnFailureListener() {
-                Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
-            }
+                    Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+                }
         }
 
     }
@@ -537,12 +544,6 @@ class Chat : Fragment(R.layout.fragment_chat) {
         viewModel.stopNetworkMonitoring()
     }
 
-    override fun onPause() {
-        super.onPause()
-        for (msg in listenedRecords)
-            viewModel.updateMessage(msg)
-    }
-
     private fun startRecording(context: Context) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
@@ -570,11 +571,15 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
 
     private fun stopRecording() {
-        mediaRecorder?.apply {
-            stop()
-            release()
+        try {
+            mediaRecorder?.apply {
+                stop()
+                release()
+            }
+            mediaRecorder = null
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        mediaRecorder = null
     }
 
     private fun uploadVoiceMessage(

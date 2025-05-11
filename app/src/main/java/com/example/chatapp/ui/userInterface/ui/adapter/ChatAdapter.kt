@@ -33,7 +33,6 @@ import java.util.HashMap
 class ChatAdapter(
     private val context: Context,
     private val chatList: List<MessageTable>,
-    private val listenRecords: ArrayList<MessageTable>,
     private val viewModel: MessageViewModel
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -133,6 +132,7 @@ class ChatAdapter(
                 pauseIcon.isVisible = false
                 playIcon.isVisible = true
             }
+            Log.d("item",item.recordMsg.toString())
 
             itemView.findViewById<LinearLayout>(R.id.record_msg).setOnClickListener {
 
@@ -145,9 +145,13 @@ class ChatAdapter(
                         }
                     )
                     if (FirebaseAuth.getInstance().currentUser?.uid == item.receiverId && !item.recordMsg.listen) {
-                        item.recordMsg.listen = true
-                        notifyItemChanged(position)
-                        listenRecords.add(item)
+                        viewModel.updateMessage(
+                            item.copy(
+                                recordMsg = item.recordMsg.copy(
+                                    listen = true
+                                )
+                            )
+                        )
                     }
                     AudioPlayerManager.previusPosition?.let {
                         notifyItemChanged(AudioPlayerManager.previusPosition!!)

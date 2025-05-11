@@ -3,13 +3,17 @@ package com.example.chatapp.ui.userInterface.localData.messages.repository
 import androidx.lifecycle.LiveData
 import com.example.chatapp.ui.userInterface.localData.messages.dao.MessageDAO
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
+import kotlinx.coroutines.flow.Flow
 
 class MessageRepository(private val messageDao: MessageDAO) {
 
-    val messages: LiveData<List<MessageTable>> = messageDao.getMessages()
+    fun getMessages(): Flow<List<MessageTable>> = messageDao.getMessages()
 
     suspend fun insertMessage(message: MessageTable) {
         messageDao.insertMessage(message)
+    }
+    suspend fun insertMessages(messages: List<MessageTable>) {
+        messageDao.insertMessages(messages)
     }
     suspend fun updateMessage(message: MessageTable){
         messageDao.updateMessage(message)
@@ -21,5 +25,9 @@ class MessageRepository(private val messageDao: MessageDAO) {
 
         return messageDao.getUnuploadedMessages()
     }
+    suspend fun getMessageById(id: String): MessageTable? {
+        return messageDao.getMessageById(id)
+    }
+
 
 }
