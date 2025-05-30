@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_inf"
+        android:title="Inf"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_copy"
+        android:title="Copy"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_pin"
+        android:title="Pin"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_edit"
+        android:title="Edit"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_report"
+        android:title="Report"
+        app:showAsAction="never" />
+
+</menu>

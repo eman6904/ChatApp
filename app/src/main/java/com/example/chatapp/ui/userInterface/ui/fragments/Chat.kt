@@ -3,12 +3,13 @@ package com.example.chatapp.ui.userInterface.ui.fragments
 import android.Manifest
 import android.app.Activity
 import android.app.Activity.RESULT_OK
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_PICK
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
@@ -18,13 +19,19 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.activity.addCallback
 import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -39,6 +46,7 @@ import com.example.chatapp.databinding.FragmentChatBinding
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 import com.example.chatapp.ui.userInterface.localData.messages.viewModel.MessageViewModel
 import com.example.chatapp.ui.userInterface.ui.adapter.ChatAdapter
+import com.example.chatapp.ui.userInterface.ui.adapter.ReactionsAdapter
 import com.example.chatapp.ui.userInterface.ui.model.ChatModel
 import com.example.chatapp.ui.userInterface.ui.model.ImageModel
 import com.example.chatapp.ui.userInterface.ui.model.RecordModel
@@ -47,11 +55,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -75,15 +78,66 @@ class Chat : Fragment(R.layout.fragment_chat) {
     var myImage: String = ""
     var isUserScrolling = false
     val viewModel: MessageViewModel by viewModels()
+    companion object{
+        var popupWindow: PopupWindow? = null
+        fun dismissPopupIfVisible() {
+            popupWindow?.dismiss()
+            popupWindow = null
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChatBinding.bind(view)
         navController = Navigation.findNavController(view)
-        val activity = activity as MainActivity
-        activity.supportActionBar?.hide()
+
         objChat = FirebaseDatabase.getInstance().getReference("Chat")
         storage = FirebaseStorage.getInstance().reference
+        val activity = activity as MainActivity
 
+        viewModel.editMode.observe(viewLifecycleOwner){ enable->
+
+            if(enable){
+                binding.editingPopup.isVisible = true
+                binding.chatInputContainer.setBackgroundColor(Color.parseColor("#cc000000"))
+            }else{
+                binding.editingPopup.isVisible = false
+                binding.chatInputContainer.background = null
+                binding.messageInput.text.clear()
+            }
+        }
+        viewModel.selectedMessages.observe(viewLifecycleOwner){ selectedMessages->
+
+            if(selectedMessages.size==1){
+
+                setHasOptionsMenu(true)
+                activity.supportActionBar?.show()
+                activity?.invalidateOptionsMenu()
+            }else if(selectedMessages.size>1){
+
+                setHasOptionsMenu(false)
+                activity.supportActionBar?.show()
+            }else{
+                activity.supportActionBar?.hide()
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+
+            if(viewModel.selectedMessages.value!!.isNotEmpty()) {
+
+                viewModel.clearSelectedMessages()
+                chatAdapter.notifyDataSetChanged()
+
+            }else if(viewModel.editMode.value==true){
+
+                viewModel.setEditMode(false)
+            } else{
+                isEnabled = false
+                requireActivity().onBackPressed()
+            }
+        }
         ///////////////////////////////////////////////////////////////////////////////
         //for record message
         binding.micIcon.setOnTouchListener { v, event ->
@@ -157,77 +211,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             }
         })
         /////////////////////////////////////////////////////////////////////////////////
-        //for react with message
-//        binding.listview.onItemClickListener=object :AdapterView.OnItemClickListener{
-//            override fun onItemClick(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-//
-//                val alertbuilder2 = AlertDialog.Builder(requireContext())
-//                val view2 = layoutInflater.inflate(R.layout.interaction, null)
-//                alertbuilder2.setView(view2)
-//                val alertDialog2 = alertbuilder2.create()
-//                alertDialog2.show()
-//
-//                var like=view2.findViewById<TextView>(R.id.like)
-//                var love=view2.findViewById<TextView>(R.id.love)
-//                var waw=view2.findViewById<TextView>(R.id.waw)
-//                var haha=view2.findViewById<TextView>(R.id.haha)
-//                var sad=view2.findViewById<TextView>(R.id.sad)
-//
-//                var message=messagesList.get(position)
-//                var react=""
-//                like.setOnClickListener()
-//                {
-//                    react=like.text.toString()
-//                    if(message.action==react)
-//                        message.action=""
-//                    else
-//                        message.action=react
-//                    objChat?.child(message.msgId)?.setValue(message)
-//                    alertDialog2.dismiss()
-//                }
-//                love.setOnClickListener()
-//                {
-//                    react=love.text.toString()
-//                    if(message.action==react)
-//                        message.action=""
-//                    else
-//                        message.action=react
-//                    objChat?.child(message.msgId)?.setValue(message)
-//                    alertDialog2.dismiss()
-//                }
-//                waw.setOnClickListener()
-//                {
-//                    react=waw.text.toString()
-//                    if(message.action==react)
-//                        message.action=""
-//                    else
-//                        message.action=react
-//                    objChat?.child(message.msgId)?.setValue(message)
-//                    alertDialog2.dismiss()
-//                }
-//                haha.setOnClickListener()
-//                {
-//                    react=haha.text.toString()
-//                    if(message.action==react)
-//                        message.action=""
-//                    else
-//                        message.action=react
-//                    objChat?.child(message.msgId)?.setValue(message)
-//                    alertDialog2.dismiss()
-//                }
-//                sad.setOnClickListener()
-//                {
-//                    react=sad.text.toString()
-//                    if(message.action==react)
-//                        message.action=""
-//                    else
-//                        message.action=react
-//                    objChat?.child(message.msgId)?.setValue(message)
-//                    alertDialog2.dismiss()
-//                }
-//            }
-//
-//        }
+
         //////////////////////////////////////////////////////////////////////////////////
         //attachment bottom sheet
         binding.attachIcon.setOnClickListener {
@@ -318,17 +302,98 @@ class Chat : Fragment(R.layout.fragment_chat) {
             }
         }
     }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu, menu)
+
+        dismissPopupIfVisible()
+
+        val pos = viewModel.selectedMessages.value?.getOrNull(0)
+        val currentUser = FirebaseAuth.getInstance().currentUser?.uid
+
+        if (pos != null && currentUser != null) {
+            val selectedMessage = viewModel.messages.value?.getOrNull(pos)
+
+            if (selectedMessage != null && selectedMessage.senderId == currentUser) {
+
+                menu.findItem(R.id.action_report)?.isVisible = false
+
+            }else if(selectedMessage != null && selectedMessage.receiverId == currentUser){
+
+                menu.findItem(R.id.action_inf)?.isVisible = false
+                menu.findItem(R.id.action_edit)?.isVisible = false
+                
+            }
+        }
+
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_edit ->{
+
+                val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+
+                viewModel.setEditMode(true)
+
+                viewModel.selectedMessages.value?.let { it->
+                    val pos = it.get(0)
+                    viewModel.setMessageForEdit(viewModel.messages.value[pos])
+                    viewModel.editedMessage.value?.let { binding.messageInput.setText(it.textMsg) }
+
+                    viewModel.clearSelectedMessages()
+                    chatAdapter.notifyItemChanged(pos)
+
+                    binding.messageInput.setSelection(binding.messageInput.text.length)
+                    binding.messageInput.requestFocus()
+                    binding.messageInput.post {
+                        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+                    }
+
+               }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
 
     override fun onStart() {
         super.onStart()
 
         readMessage()
         viewModel.startNetworkMonitoring()
-        binding.progressBar.isVisible = false
         messagesList = ArrayList()
         binding.listview.layoutManager = LinearLayoutManager(requireContext())
 
         chatAdapter = ChatAdapter(requireContext(), messagesList, viewModel)
+        chatAdapter.setOnClickListener(object : ChatAdapter.OnClickListener {
+            override fun onClick(position: Int, model: MessageTable) {
+                // هنا تعملي اللي عايزاه عند الضغط العادي
+                Log.d("press","onclick")
+                dismissPopupIfVisible()
+            }
+
+            override fun onLongClick(view: View,position: Int, model: MessageTable) {
+                dismissPopupIfVisible()
+                if(isAdded){
+                    showReactionPopup(
+                        anchorView = view,
+                        context = requireContext(),
+                        onReactionSelected = { selectedReaction->
+
+                            var action = if(selectedReaction==viewModel.messages.value[position].action) "" else selectedReaction
+
+                            viewModel.updateMessage(viewModel.messages.value[position].copy(
+                                action = action
+                            ))
+                            viewModel.removePosition(position)
+
+                        }
+                    )
+                }
+            }
+        })
         binding.listview.adapter = chatAdapter
 
         viewModel.downloadMessagesFromFirebase()
@@ -625,6 +690,50 @@ class Chat : Fragment(R.layout.fragment_chat) {
             null
         }
     }
+    fun Int.dpToPx(context: Context): Int =
+        (this * context.resources.displayMetrics.density).toInt()
 
+    fun showReactionPopup(anchorView: View, context: Context, onReactionSelected: (String) -> Unit) {
+        val popupView = LayoutInflater.from(context).inflate(R.layout.dialog_reaction, null)
+        val recyclerView = popupView.findViewById<RecyclerView>(R.id.reactionsRecyclerView)
+        popupWindow = PopupWindow(popupView,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            60.dpToPx(context),
+            false)
+
+        popupWindow?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        popupWindow?.isOutsideTouchable = false
+        popupWindow?.elevation = 10f
+
+        val reactions = listOf("👍","❤️", "😂", "😍", "😢", "😮", "👎")
+
+        recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        recyclerView.adapter = ReactionsAdapter(reactions) {
+            onReactionSelected(it)
+            popupWindow?.dismiss()
+        }
+
+        // قياس الـ popup عشان نعرف أبعاده
+        popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popupWidth = popupView.measuredWidth
+        val popupHeight = popupView.measuredHeight
+
+        // تحديد مكان العنصر اللي ضغط عليه المستخدم
+        val location = IntArray(2)
+        anchorView.getLocationOnScreen(location)
+        val anchorX = location[0]
+        val anchorY = location[1]
+        val anchorWidth = anchorView.width
+
+        // نعرض البوب أب فوق الرسالة وفي نصها
+        popupWindow?.showAtLocation(
+            anchorView,
+            Gravity.NO_GRAVITY,
+            anchorX + (anchorWidth / 2) - (popupWidth / 2),
+            anchorY - popupHeight
+        )
+    }
 
 }
+
+

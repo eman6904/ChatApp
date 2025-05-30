@@ -7,6 +7,7 @@
     <color name="teal_700">#005D4B</color>
     <color name="cardColor">#005D4B</color>
     <color name="mainColor">#005D4B</color>
+    <color name="selected_green">#8027AE60</color>
     <color name="listenRecordColor">#2196F3</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>

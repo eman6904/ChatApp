@@ -2,6 +2,8 @@ package com.example.chatapp.ui.userInterface.ui.adapter
 
 import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
@@ -18,12 +20,15 @@ import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.chatapp.R
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 import com.example.chatapp.ui.userInterface.localData.messages.viewModel.MessageViewModel
+import com.example.chatapp.ui.userInterface.ui.fragments.Chat
 import com.example.chatapp.ui.userInterface.ui.model.RecordModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -36,9 +41,10 @@ class ChatAdapter(
     private val viewModel: MessageViewModel
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    companion object {
+    companion object com{
         private const val RIGHT = 0
         private const val LEFT = 1
+        private var onClickListener:OnClickListener? = null
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -54,9 +60,59 @@ class ChatAdapter(
     override fun getItemCount(): Int = chatList.size
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+
         if (holder is ChatViewHolder) {
             holder.bind(chatList[position], position)
         }
+
+
+        holder.itemView.setOnClickListener {
+
+            val adapterPosition = holder.bindingAdapterPosition
+
+            if (adapterPosition != RecyclerView.NO_POSITION) {
+
+                if (viewModel.selectedMessages.value!!.isNotEmpty()) {
+
+                    viewModel.addPosition(adapterPosition)
+                    notifyItemChanged(adapterPosition)
+                }
+                onClickListener?.onClick(adapterPosition, chatList[adapterPosition])
+            }
+        }
+
+
+        holder.itemView.setOnLongClickListener {
+
+            val adapterPosition = holder.bindingAdapterPosition
+
+            if (adapterPosition != RecyclerView.NO_POSITION && viewModel.selectedMessages.value!!.isEmpty()) {
+
+                viewModel.addPosition(adapterPosition)
+
+                notifyItemChanged(adapterPosition)
+
+                onClickListener?.onLongClick(it, adapterPosition, chatList[adapterPosition])
+            }
+            true
+        }
+
+
+        if (viewModel.selectedMessages.value!!.contains(position)) {
+            holder.itemView.findViewById<View>(R.id.selectionOverlay).isVisible = true
+        } else {
+            holder.itemView.findViewById<View>(R.id.selectionOverlay).isVisible = false
+        }
+
+    }
+
+    fun setOnClickListener(onClickListener:OnClickListener) {
+        com.onClickListener = onClickListener
+    }
+
+    interface OnClickListener {
+        fun onClick(position: Int, model: MessageTable)
+        fun onLongClick(view: View, position: Int, model: MessageTable)
     }
 
     inner class ChatViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

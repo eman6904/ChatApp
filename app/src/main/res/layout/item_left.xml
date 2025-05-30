@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="@dimen/_2sdp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_marginEnd="@dimen/_100sdp"
     android:gravity="left">
-
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
     <RelativeLayout
         android:id="@+id/msg_body"
         android:layout_width="match_parent"
@@ -23,7 +25,7 @@
             android:src="@drawable/tail_received"/>
         <LinearLayout
             android:id="@+id/text_msg"
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/_140sdp"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
@@ -256,3 +258,11 @@
             android:textSize="12sp"/>
     </com.google.android.material.card.MaterialCardView>
 </RelativeLayout>
+    <View
+        android:id="@+id/selectionOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#8034C759"
+        android:visibility="gone">
+    </View>
+</FrameLayout>

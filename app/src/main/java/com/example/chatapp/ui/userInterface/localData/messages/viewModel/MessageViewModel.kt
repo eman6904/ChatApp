@@ -2,9 +2,7 @@ package com.example.chatapp.ui.userInterface.localData.messages.viewModel
 
 import android.app.Application
 import android.content.Context
-import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,7 +12,6 @@ import com.example.chatapp.ui.userInterface.localData.messages.repository.Messag
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 import com.example.chatapp.ui.userInterface.localData.networkMenitor.NetworkMonitor
 import com.example.chatapp.ui.userInterface.ui.model.ImageModel
-import com.example.chatapp.ui.userInterface.ui.model.RecordModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -22,7 +19,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,12 +31,19 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.HashMap
 
 class MessageViewModel(application: Application) : AndroidViewModel(application) {
 
     private val messageRepo: MessageRepository
 
+    private val _selectedMessages = MutableLiveData<ArrayList<Int>>(ArrayList())
+    val selectedMessages: LiveData<ArrayList<Int>> = _selectedMessages
+
+    private val _editedMessage = MutableLiveData<MessageTable>()
+    val editedMessage: LiveData<MessageTable> = _editedMessage
+
+    private val _editMode = MutableLiveData<Boolean>(false)
+    val editMode: LiveData<Boolean> = _editMode
 
     init {
         val dao = MessageDatabase.getDatabase(application).messageDao()
@@ -79,6 +82,35 @@ class MessageViewModel(application: Application) : AndroidViewModel(application)
     fun updateMessage(msg: MessageTable) = viewModelScope.launch {
 
         messageRepo.updateMessage(msg)
+    }
+    fun setMessageForEdit(msg:MessageTable){
+
+        _editedMessage.value = msg
+    }
+    fun setEditMode(enable:Boolean){
+
+        _editMode.value = enable
+    }
+    fun addPosition(pos: Int) {
+        val currentList = _selectedMessages.value ?: ArrayList()
+        if (currentList.contains(pos)) {
+            removePosition(pos)
+        } else {
+            val updatedList = ArrayList(currentList)
+            updatedList.add(pos)
+            _selectedMessages.value = updatedList
+        }
+    }
+
+    fun removePosition(pos: Int) {
+        val currentList = _selectedMessages.value ?: ArrayList()
+        val updatedList = ArrayList(currentList)
+        updatedList.remove(pos)
+        _selectedMessages.value = updatedList
+    }
+
+    fun clearSelectedMessages() {
+        _selectedMessages.value = ArrayList()
     }
 
     fun uploadPendingMessages() = viewModelScope.launch {
