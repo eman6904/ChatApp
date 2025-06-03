@@ -3,10 +3,12 @@ package com.example.chatapp.ui.userInterface.ui.fragments
 import android.Manifest
 import android.app.Activity
 import android.app.Activity.RESULT_OK
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_PICK
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -25,6 +27,7 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.addCallback
@@ -48,6 +51,7 @@ import com.example.chatapp.ui.userInterface.localData.messages.viewModel.Message
 import com.example.chatapp.ui.userInterface.ui.adapter.ChatAdapter
 import com.example.chatapp.ui.userInterface.ui.adapter.ReactionsAdapter
 import com.example.chatapp.ui.userInterface.ui.model.ChatModel
+import com.example.chatapp.ui.userInterface.ui.model.DeletedMessageModel
 import com.example.chatapp.ui.userInterface.ui.model.ImageModel
 import com.example.chatapp.ui.userInterface.ui.model.RecordModel
 import com.example.chatapp.ui.userInterface.ui.model.UserItems
@@ -55,6 +59,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.util.*
@@ -100,8 +112,18 @@ class Chat : Fragment(R.layout.fragment_chat) {
             if(enable){
                 binding.editingPopup.isVisible = true
                 binding.chatInputContainer.setBackgroundColor(Color.parseColor("#cc000000"))
+                binding.micIcon.isVisible = false
+                binding.doneIcon.isVisible = true
+                binding.cameraIcon.isVisible = false
+                binding.attachIcon.isVisible = false
             }else{
                 binding.editingPopup.isVisible = false
+                binding.micIcon.isVisible = true
+                binding.doneIcon.isVisible = false
+                binding.cameraIcon.isVisible = true
+                binding.attachIcon.isVisible = true
+                binding.send.backgroundTintList =
+                    ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.mainColor))
                 binding.chatInputContainer.background = null
                 binding.messageInput.text.clear()
             }
@@ -121,7 +143,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 activity.supportActionBar?.hide()
             }
         }
+        /////////////////////////////////////////////////////////////////////////////
+        requireActivity().findViewById<ImageView>(R.id.delete_icon).setOnClickListener {
 
+            showDeleteConfirmationDialog(requireContext())
+            dismissPopupIfVisible()
+        }
         ///////////////////////////////////////////////////////////////////////////////
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
 
@@ -195,14 +222,41 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
                 if (binding.messageInput.text.toString().isNotEmpty()) {
 
-                    binding.micIcon.isVisible = false
-                    binding.cameraIcon.isVisible = false
-                    binding.sendIcon.isVisible = true
+                    if(viewModel.editMode.value==false){
+
+                        binding.micIcon.isVisible = false
+                        binding.cameraIcon.isVisible = false
+                        binding.sendIcon.isVisible = true
+
+                    }else{
+
+                        binding.doneIcon.isVisible = true
+                        binding.micIcon.isVisible = false
+                        binding.cameraIcon.isVisible = false
+                        binding.attachIcon.isVisible = false
+                        binding.send.backgroundTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.mainColor))
+                        binding.doneIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.white))
+                    }
+
                 } else {
 
-                    binding.micIcon.isVisible = true
-                    binding.cameraIcon.isVisible = true
-                    binding.sendIcon.isVisible = false
+                    if(viewModel.editMode.value == false){
+
+                        binding.micIcon.isVisible = true
+                        binding.cameraIcon.isVisible = true
+                        binding.sendIcon.isVisible = false
+
+                    }else{
+
+                        binding.doneIcon.isVisible = true
+                        binding.micIcon.isVisible = false
+                        binding.cameraIcon.isVisible = false
+                        binding.attachIcon.isVisible = false
+                        binding.send.backgroundTintList =
+                            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.disabledIconColor))
+                        binding.doneIcon.setColorFilter(ContextCompat.getColor(requireContext(), R.color.iconsColor))
+                    }
                 }
             }
 
@@ -285,7 +339,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
         {
             if (binding.messageInput.text.isEmpty())
                 Toast.makeText(requireContext(), "Message is empty", Toast.LENGTH_LONG).show()
-            else {
+            else if(viewModel.editMode.value== false) {
                 prepareMsg(
                     msgType = "text"
                 )
@@ -299,13 +353,31 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     }
                     binding.messageInput.setText("")
                 }
+            }else{
+
+                val updatedMessage = viewModel.editedMessage.value?.copy(
+                    textMsg = binding.messageInput.text.toString(),
+                    edited = true
+                )
+                val position = viewModel.selectedMessages.value?.getOrNull(0)
+
+                Log.d("edit",position.toString()+updatedMessage.toString())
+
+                if (updatedMessage != null && position != null) {
+
+                    viewModel.updateMessage(updatedMessage)
+                    chatAdapter.notifyItemChanged(position)
+
+                    binding.messageInput.setText("")
+                    viewModel.setEditMode(false)
+                    viewModel.clearSelectedMessages()
+                }
+
             }
         }
     }
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu, menu)
-
-        dismissPopupIfVisible()
 
         val pos = viewModel.selectedMessages.value?.getOrNull(0)
         val currentUser = FirebaseAuth.getInstance().currentUser?.uid
@@ -329,6 +401,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
         return when (item.itemId) {
             R.id.action_edit ->{
 
@@ -337,12 +410,10 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 viewModel.setEditMode(true)
 
                 viewModel.selectedMessages.value?.let { it->
+
                     val pos = it.get(0)
                     viewModel.setMessageForEdit(viewModel.messages.value[pos])
                     viewModel.editedMessage.value?.let { binding.messageInput.setText(it.textMsg) }
-
-                    viewModel.clearSelectedMessages()
-                    chatAdapter.notifyItemChanged(pos)
 
                     binding.messageInput.setSelection(binding.messageInput.text.length)
                     binding.messageInput.requestFocus()
@@ -732,6 +803,91 @@ class Chat : Fragment(R.layout.fragment_chat) {
             anchorX + (anchorWidth / 2) - (popupWidth / 2),
             anchorY - popupHeight
         )
+    }
+    private fun showDeleteConfirmationDialog(
+        context: Context
+    ) {
+        val dialog = Dialog(context)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(true)
+        dialog.setContentView(R.layout.delete_dialog)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val width = (context.resources.displayMetrics.widthPixels * 0.90).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.show()
+        var title: TextView? = null
+        var deleteForEveryOne: TextView? = null
+        var deleteForMe: TextView? = null
+        var cancel: TextView? = null
+
+        val list = viewModel.selectedMessages.value?.filter { pos ->
+            viewModel.messages.value?.get(pos)?.senderId != FirebaseAuth.getInstance()?.currentUser!!.uid
+        }
+
+        if (list != null && list.isNotEmpty()) {
+
+            dialog.findViewById<LinearLayout>(R.id.dialog2).isVisible = true
+            dialog.findViewById<LinearLayout>(R.id.dialog1).isVisible = false
+            title = dialog.findViewById(R.id.title2)
+            deleteForMe = dialog.findViewById(R.id.delet_for_me2)
+            cancel = dialog.findViewById(R.id.cancel2)
+        } else {
+            dialog.findViewById<LinearLayout>(R.id.dialog2).isVisible = false
+            dialog.findViewById<LinearLayout>(R.id.dialog1).isVisible = true
+            title = dialog.findViewById<TextView?>(R.id.title1)
+            deleteForMe = dialog.findViewById(R.id.delete_for_me1)
+            deleteForEveryOne = dialog.findViewById(R.id.delete_everyone1)
+            cancel = dialog.findViewById(R.id.cancel1)
+
+        }
+        if(viewModel.selectedMessages.value?.size==1)
+           title.setText("Delete message ?")
+        else
+           title.setText("Delete ${viewModel.selectedMessages.value?.size} messages ?")
+        cancel?.setOnClickListener {
+            dialog.dismiss()
+        }
+        deleteForMe?.setOnClickListener {
+            deleteMessages(
+                sides = 1
+            )
+            dialog.dismiss()
+        }
+        deleteForEveryOne?.setOnClickListener {
+            deleteMessages(
+                sides = 2
+            )
+            dialog.dismiss()
+        }
+    }
+
+    private fun deleteMessages(sides:Int){
+        lifecycleScope.launch {
+            val selectedPositions = viewModel.selectedMessages.value
+            val messagesList = viewModel.messages.value
+
+            coroutineScope {
+                val deferreds = selectedPositions?.mapNotNull { pos ->
+                    if (pos in messagesList.indices) {
+                        async {
+                            val updatedMessage = messagesList[pos].copy(deleted = DeletedMessageModel(
+                                sides = sides,
+                                userId = FirebaseAuth.getInstance()?.currentUser!!.uid))
+                            viewModel.updateMessage(updatedMessage)
+                            withContext(Dispatchers.Main) {
+                                chatAdapter.notifyItemChanged(pos)
+                            }
+                        }
+                    } else {
+                        null
+                    }
+                } ?: emptyList()
+
+                deferreds.awaitAll()
+            }
+
+            viewModel.clearSelectedMessages()
+        }
     }
 
 }

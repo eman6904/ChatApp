@@ -2,39 +2,27 @@ package com.example.chatapp.ui.userInterface.ui.adapter
 
 import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
-import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.chatapp.R
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 import com.example.chatapp.ui.userInterface.localData.messages.viewModel.MessageViewModel
-import com.example.chatapp.ui.userInterface.ui.fragments.Chat
-import com.example.chatapp.ui.userInterface.ui.model.RecordModel
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.FirebaseDatabase
 import java.io.File
-import java.util.HashMap
+
 class ChatAdapter(
     private val context: Context,
     private val chatList: List<MessageTable>,
@@ -125,17 +113,23 @@ class ChatAdapter(
             action.text = item.action
 
             tail.isVisible = !(position > 0 && getItemViewType(position) == getItemViewType(position - 1))
-
-            when (item.msgType) {
-                "text" -> bindTextMessage(item)
-                "image" -> bindImageMessage(item)
-                else -> bindRecordMessage(item)
+            if(item.deleted.sides==2||(item.deleted.sides==1 && item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)){
+                bindDeletedMessage(item)
+                actionBackground.isVisible = false
+                action.text = ""
+            }else{
+                when (item.msgType) {
+                    "text" -> bindTextMessage(item)
+                    "image" -> bindImageMessage(item)
+                    else -> bindRecordMessage(item)
+                }
             }
         }
 
         private fun bindTextMessage(item: MessageTable) {
             itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = true
             itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
 
             itemView.findViewById<TextView>(R.id.text_message_body).text = item.textMsg
@@ -143,11 +137,15 @@ class ChatAdapter(
 
             val seen = itemView.findViewById<TextView>(R.id.seen)
             seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+
+            val edited = itemView.findViewById<TextView>(R.id.edited)
+            edited.isVisible = item.edited
         }
 
         private fun bindImageMessage(item: MessageTable) {
             itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = true
             itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
 
             if (context is Activity && !context.isDestroyed) {
@@ -162,11 +160,13 @@ class ChatAdapter(
             itemView.findViewById<TextView>(R.id.image_msg_time).text = item.time
             val seen = itemView.findViewById<TextView>(R.id.image_seen)
             seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+
         }
 
         private fun bindRecordMessage(item: MessageTable) {
             itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = true
 
             val playIcon = itemView.findViewById<ImageView>(R.id.play_icon)
@@ -188,7 +188,6 @@ class ChatAdapter(
                 pauseIcon.isVisible = false
                 playIcon.isVisible = true
             }
-            Log.d("item",item.recordMsg.toString())
 
             itemView.findViewById<LinearLayout>(R.id.record_msg).setOnClickListener {
 
@@ -225,10 +224,34 @@ class ChatAdapter(
             }
 
             itemView.findViewById<TextView>(R.id.record_msg_time).text = item.time
+
             val seen = itemView.findViewById<TextView>(R.id.record_seen)
             seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
+
+        }
+        private fun bindDeletedMessage(item:MessageTable){
+
+            itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
+            itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = true
+            itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
+            val deletedMessage = itemView.findViewById<TextView>(R.id.deleted_message_body)
+            when(item.deleted.sides){
+                1->{
+                        deletedMessage.text = "You deleted this message"
+                }
+                2->{
+
+                    if(item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)
+                        deletedMessage.text = "You deleted this message"
+                    else
+                        deletedMessage.text = "This message is deleted"
+                }
+            }
+            itemView.findViewById<TextView>(R.id.deleted_message_time).text = item.time
         }
     }
+
 
     object AudioPlayerManager {
         private var mediaPlayer: MediaPlayer? = null

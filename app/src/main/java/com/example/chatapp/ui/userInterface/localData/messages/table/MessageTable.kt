@@ -3,6 +3,7 @@ package com.example.chatapp.ui.userInterface.localData.messages.table
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.chatapp.ui.userInterface.ui.model.DeletedMessageModel
 import com.example.chatapp.ui.userInterface.ui.model.ImageModel
 import com.example.chatapp.ui.userInterface.ui.model.RecordModel
 
@@ -23,7 +24,8 @@ data class MessageTable(
     var time: String = "",
     var action: String = "",
     var status: String ="",
-    var downloaded:Boolean = false,
-    var uploaded:Boolean = false,
+    var edited:Boolean = false,
+    @Embedded
+    var deleted: DeletedMessageModel = DeletedMessageModel(0,""),
     val timestamp: Long = System.currentTimeMillis()
 )

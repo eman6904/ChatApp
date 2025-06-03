@@ -13,7 +13,7 @@ data class ChatModel(
     var time: String = "",
     var action: String = "",
     var status: String ="",
-    var downloaded:Boolean = false,
-    var uploaded:Boolean = false,
+    var edited:Boolean = false,
+    var deleted:DeletedMessageModel = DeletedMessageModel(0,""),
     val timestamp: Long = System.currentTimeMillis()
 )

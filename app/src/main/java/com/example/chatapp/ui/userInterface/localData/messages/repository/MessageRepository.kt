@@ -21,10 +21,7 @@ class MessageRepository(private val messageDao: MessageDAO) {
     suspend fun existsByMsgId(msgId: String):Boolean{
         return messageDao.existsByMsgId(msgId)
     }
-    suspend fun getUnuploadedMessages():List<MessageTable>{
 
-        return messageDao.getUnuploadedMessages()
-    }
     suspend fun getMessageById(id: String): MessageTable? {
         return messageDao.getMessageById(id)
     }

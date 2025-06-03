@@ -12,4 +12,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="iconsColor">#9EA2A6</color>
+    <color name="rightSecondaryColor">#80FFFFFF</color>
+    <color name="leftSecondaryColor">#80090909</color>
+    <color name="disabledIconColor">#E9EAEC</color>
 </resources>

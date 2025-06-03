@@ -7,13 +7,14 @@
     android:gravity="left">
 <RelativeLayout
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/_60sdp">
     <RelativeLayout
         android:id="@+id/msg_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="left"
-        android:paddingBottom="@dimen/_10sdp"
+        android:paddingBottom="@dimen/_15sdp"
         android:paddingTop="@dimen/_2sdp"
         android:paddingStart="@dimen/_4sdp">
         <ImageView
@@ -25,7 +26,7 @@
             android:src="@drawable/tail_received"/>
         <LinearLayout
             android:id="@+id/text_msg"
-            android:layout_width="@dimen/_140sdp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
@@ -43,7 +44,7 @@
                 android:textColor="@color/black"
                 android:textSize="16sp"/>
             <LinearLayout
-                android:layout_width="@dimen/_70sdp"
+                android:layout_width="@dimen/_80sdp"
                 android:layout_gravity="left"
                 android:gravity="center|start"
                 android:padding="@dimen/_4sdp"
@@ -53,7 +54,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="5:30 pm"
-                    android:textColor="#80120C0C"
+                    android:textColor="@color/leftSecondaryColor"
                     android:textSize="8sp"/>
                 <TextView
                     android:id="@+id/seen"
@@ -63,7 +64,65 @@
                     android:visibility="gone"
                     android:textColor="@color/white"
                     android:textSize="8sp"/>
+                <TextView
+                    android:id="@+id/edited"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Edited"
+                    android:visibility="gone"
+                    android:gravity="start"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:textColor="#80FFFFFF"
+                    android:textSize="8sp"/>
             </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/deleted_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:gravity="center"
+            android:background="@drawable/msg_left"
+            android:padding="@dimen/_5sdp"
+            android:visibility="visible"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+                <ImageView
+                    android:id="@+id/no_entry"
+                    android:layout_width="@dimen/_15sdp"
+                    android:layout_height="@dimen/_20sdp"
+                    android:visibility="visible"
+                    android:layout_margin="@dimen/_4sdp"
+                    app:tint="@color/leftSecondaryColor"
+                    android:background="@android:color/transparent"
+                    android:src="@drawable/no_entry_icon" />
+                <TextView
+                    android:id="@+id/deleted_message_body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="italic"
+                    android:text="You deleted this message "
+                    android:textColor="@color/leftSecondaryColor"
+                    android:textSize="16sp"/>
+            </LinearLayout>
+            <TextView
+                android:id="@+id/deleted_message_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5:30 pm"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginBottom="@dimen/_4sdp"
+                android:layout_gravity="start"
+                android:textColor="@color/leftSecondaryColor"
+                android:textSize="8sp"/>
         </LinearLayout>
         <LinearLayout
             android:id="@+id/image_msg"
@@ -73,7 +132,7 @@
             android:layout_alignParentTop="true"
             android:background="@drawable/msg_left"
             android:padding="@dimen/_5sdp"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_marginStart="@dimen/_8sdp"
             android:orientation="vertical">
         <ImageView
@@ -98,7 +157,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|right"
-                android:textColor="#80090909"
+                android:textColor="@color/leftSecondaryColor"
+                android:textSize="8sp"
                 android:layout_marginEnd="@dimen/_10sdp"
                 android:text="8:40 pm" />
             <TextView
@@ -190,7 +250,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:paddingLeft="@dimen/_4sdp"
-                    android:textColor="#80090909"
+                    android:textColor="@color/leftSecondaryColor"
                     android:layout_marginEnd="@dimen/_10sdp"
                     android:text="" />
                 <TextView
@@ -199,8 +259,8 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center|right"
-                    android:textColor="#80090909"
-                    android:textSize="@dimen/_10sdp"
+                    android:textColor="@color/leftSecondaryColor"
+                    android:textSize="8sp"
                     android:layout_marginEnd="@dimen/_10sdp"
                     android:text="8:40 pm" />
                 <TextView
@@ -243,8 +303,9 @@
         android:background="@drawable/circle"
         app:cardCornerRadius="@dimen/_10sdp"
         app:cardPreventCornerOverlap="true"
-        android:layout_marginLeft="@dimen/_20sdp"
+        android:layout_marginLeft="@dimen/_15sdp"
         android:layout_alignBottom="@+id/msg_body"
+        android:layout_marginTop="@dimen/_4sdp"
         android:layout_alignParentStart="true"
         android:visibility="gone"
         app:cardMaxElevation="20dp">

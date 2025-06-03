@@ -20,9 +20,6 @@ interface MessageDAO {
     @Query("SELECT * FROM MessageTable ORDER BY timestamp ASC")
     fun getMessages(): Flow<List<MessageTable>>
 
-    @Query("SELECT * FROM MessageTable WHERE uploaded = 0")
-    suspend fun getUnuploadedMessages(): List<MessageTable>
-
     @Update
     suspend fun updateMessage(message: MessageTable)
 

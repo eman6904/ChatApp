@@ -74,6 +74,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_below="@id/header"
+        android:fitsSystemWindows="true"
     android:layout_above="@+id/chat_input_container">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listview"
@@ -238,10 +239,20 @@
                 android:src="@drawable/send_icon"
                 android:contentDescription="Send" />
             <ImageView
+                android:id="@+id/done_icon"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_22sdp"
+                app:tint="@color/white"
+                android:visibility="gone"
+                android:layout_gravity="center"
+                android:background="@android:color/transparent"
+                android:src="@drawable/done_icon" />
+            <ImageView
                 android:id="@+id/mic_icon"
                 android:layout_width="@dimen/_20sdp"
                 android:layout_height="@dimen/_22sdp"
                 app:tint="@color/white"
+                android:visibility="visible"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent"
                 android:src="@drawable/mic_icon" />
