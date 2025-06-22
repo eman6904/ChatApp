@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.chatapp.R
@@ -28,17 +31,16 @@ class Users : Fragment(R.layout.users) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = UsersBinding.bind(view)
-        navController = Navigation.findNavController(view)
+
+        (parentFragment as? Home)?.let {
+            navController = it.findNavController()
+        }
+
 
         val activity = activity as MainActivity
         activity.supportActionBar?.hide()
 
         binding.progressBar.isVisible = true
-
-        binding.arrowBack.setOnClickListener()
-        {
-            navController.navigate(R.id.action_users_to_profile3)
-        }
 
     }
 
@@ -57,12 +59,6 @@ class Users : Fragment(R.layout.users) {
                     val user = data.getValue(UserItems::class.java)
                     if(!user!!.id.equals(currentUserId))
                         list.add(user)
-                    else{
-                        if(isAdded){
-                            Glide.with(requireContext()).asBitmap().load(Uri.parse(user.profilePhoto))
-                                .placeholder(R.drawable.personalphotojpg).into(binding.profileImage)
-                        }
-                    }
                 }
                 //to make sure that views is active
                if(isAdded){

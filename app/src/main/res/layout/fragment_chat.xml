@@ -74,7 +74,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_below="@id/header"
-        android:fitsSystemWindows="true"
+   android:fitsSystemWindows="true"
     android:layout_above="@+id/chat_input_container">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listview"
@@ -178,11 +178,12 @@
             android:paddingStart="@dimen/_35sdp"
             android:hint="Message"
             android:minHeight="48dp"
-            android:fontFamily="@font/robot"
             android:maxLines="5"
             android:background="@drawable/chat_input_background"
             android:padding="10dp"
             android:textSize="16sp"
+            android:cursorVisible="false"
+            android:textStyle="normal"
             android:gravity="start|center_vertical"
             android:inputType="textMultiLine"
             android:imeOptions="actionSend" />
@@ -197,7 +198,7 @@
                     android:layout_alignParentStart="true"
                     android:layout_marginStart="12dp"
                     android:layout_centerVertical="true"
-                    android:src="@drawable/emoji" />
+                    android:src="@drawable/emoj_ic" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -217,7 +218,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_marginEnd="20dp"
-                            android:src="@drawable/camera_svg" />
+                            android:src="@drawable/camera_ic" />
                     </LinearLayout>
             </RelativeLayout>
         </RelativeLayout>

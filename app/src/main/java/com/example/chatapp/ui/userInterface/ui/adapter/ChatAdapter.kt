@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
@@ -29,11 +30,11 @@ class ChatAdapter(
     private val viewModel: MessageViewModel
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    companion object com{
+    companion object com {
         private const val RIGHT = 0
         private const val LEFT = 1
-        private var onClickListener:OnClickListener? = null
     }
+    private var _onClickListener: OnClickListener? = null
 
     override fun getItemViewType(position: Int): Int {
         return if (chatList[position].senderId == FirebaseAuth.getInstance().currentUser!!.uid) RIGHT else LEFT
@@ -65,7 +66,7 @@ class ChatAdapter(
                     viewModel.addPosition(adapterPosition)
                     notifyItemChanged(adapterPosition)
                 }
-                onClickListener?.onClick(adapterPosition, chatList[adapterPosition])
+                _onClickListener?.onClick(adapterPosition, chatList[adapterPosition])
             }
         }
 
@@ -80,7 +81,7 @@ class ChatAdapter(
 
                 notifyItemChanged(adapterPosition)
 
-                onClickListener?.onLongClick(it, adapterPosition, chatList[adapterPosition])
+                _onClickListener?.onLongClick(it, adapterPosition, chatList[adapterPosition])
             }
             true
         }
@@ -94,8 +95,8 @@ class ChatAdapter(
 
     }
 
-    fun setOnClickListener(onClickListener:OnClickListener) {
-        com.onClickListener = onClickListener
+    fun setOnClickListener(onClickListener: OnClickListener) {
+        _onClickListener = onClickListener
     }
 
     interface OnClickListener {
@@ -107,17 +108,47 @@ class ChatAdapter(
         fun bind(item: MessageTable, position: Int) {
             val action = itemView.findViewById<TextView>(R.id.action)
             val tail = itemView.findViewById<ImageView>(R.id.tail)
+            val msgLayout = itemView.findViewById<RelativeLayout>(R.id.msg)
             val actionBackground = itemView.findViewById<CardView>(R.id.actionBackground)
 
             actionBackground.isVisible = item.action.isNotEmpty()
             action.text = item.action
+            if(item.action.isNotEmpty()){
 
-            tail.isVisible = !(position > 0 && getItemViewType(position) == getItemViewType(position - 1))
-            if(item.deleted.sides==2||(item.deleted.sides==1 && item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)){
+                val scale = context.resources.displayMetrics.density
+                val paddingInPx = (20 * scale + 0.5f).toInt()
+
+                msgLayout.setPadding(
+                    msgLayout.paddingLeft,
+                    msgLayout.paddingTop,
+                    msgLayout.paddingRight,
+                    paddingInPx
+                )
+            }else{
+
+                val scale = context.resources.displayMetrics.density
+                val paddingInPx = (0 * scale + 0.5f).toInt()
+
+                msgLayout.setPadding(
+                    msgLayout.paddingLeft,
+                    msgLayout.paddingTop,
+                    msgLayout.paddingRight,
+                    paddingInPx
+                )
+            }
+
+            tail.isVisible =
+                !(position > 0 && getItemViewType(position) == getItemViewType(position - 1))
+
+            if (item.deleted.sides == 2) {
                 bindDeletedMessage(item)
                 actionBackground.isVisible = false
                 action.text = ""
-            }else{
+            }else if( (item.deleted.sides == 1 && item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)) {
+                itemView.findViewById<RelativeLayout>(R.id.screen_root).isVisible = false
+                actionBackground.isVisible = false
+                action.text = ""
+            }else {
                 when (item.msgType) {
                     "text" -> bindTextMessage(item)
                     "image" -> bindImageMessage(item)
@@ -229,25 +260,18 @@ class ChatAdapter(
             seen.isVisible = getItemViewType(adapterPosition) == RIGHT && item.status == "seen"
 
         }
-        private fun bindDeletedMessage(item:MessageTable){
+
+        private fun bindDeletedMessage(item: MessageTable) {
 
             itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = true
             itemView.findViewById<LinearLayout>(R.id.record_msg).isVisible = false
             val deletedMessage = itemView.findViewById<TextView>(R.id.deleted_message_body)
-            when(item.deleted.sides){
-                1->{
-                        deletedMessage.text = "You deleted this message"
-                }
-                2->{
-
-                    if(item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)
-                        deletedMessage.text = "You deleted this message"
-                    else
-                        deletedMessage.text = "This message is deleted"
-                }
-            }
+            if (item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)
+                deletedMessage.text = context.getString(R.string.you_deleted_this_message)
+            else
+                deletedMessage.text = context.getString(R.string.this_message_is_deleted)
             itemView.findViewById<TextView>(R.id.deleted_message_time).text = item.time
         }
     }
@@ -258,7 +282,7 @@ class ChatAdapter(
         var currentPath: String? = null
         var previusPosition: Int? = null
 
-        fun play(path: String,clearPath:()->Unit) {
+        fun play(path: String, clearPath: () -> Unit) {
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(path)

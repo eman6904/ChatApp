@@ -8,35 +8,6 @@
     tools:context=".ui.userInterface.ui.fragments.Users">
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#6A1B9A">
-        <TextView
-            android:id="@+id/profile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:fontFamily="@font/bold"
-            android:textSize="@dimen/_17sdp"
-            android:layout_marginLeft="@dimen/_45sdp"
-            android:layout_gravity="center_vertical"
-            android:text="My Profile" />
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image"
-            android:layout_width="@dimen/_50sdp"
-            android:layout_height="@dimen/_50sdp"
-            android:padding="@dimen/_3sdp"
-            android:layout_gravity="right"
-            android:src="@drawable/personalphotojpg" />
-        <ImageView
-            android:id="@+id/arrow_back"
-            android:layout_width="@dimen/_30sdp"
-            android:layout_gravity="center_vertical"
-            android:layout_height="@dimen/_30sdp"
-            android:src="@drawable/arr_back2_foreground" />
-
-    </FrameLayout>
-    <FrameLayout
-        android:layout_width="match_parent"
         android:layout_height="match_parent">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"

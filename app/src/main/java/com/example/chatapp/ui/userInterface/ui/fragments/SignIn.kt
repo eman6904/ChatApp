@@ -90,7 +90,7 @@ class SignIn : Fragment(R.layout.fragment_sign_in) {
                 .show()
             if(userCase=="Register")
                 addUser()
-            navController.navigate(R.id.action_signIn_to_users)
+            navController.navigate(R.id.action_signIn_to_home2)
         }else{
             addUser()
             Toast.makeText(requireContext(), "Please verify your account..", Toast.LENGTH_LONG).show()
@@ -107,7 +107,7 @@ class SignIn : Fragment(R.layout.fragment_sign_in) {
 //        super.onStart()
 //        val currentUser = FirebaseAuth.getInstance().currentUser
 //        if (currentUser != null) {
-//            navController.navigate(R.id.action_signIn_to_users)
+//            navController.navigate(R.id.action_signIn_to_home2)
 //        }
 //    }
 

@@ -25,7 +25,7 @@ class UserAdapter(private val list:ArrayList<UserItems>):
             var msg=binding.msg
             var username=binding.username
             var currentTime=binding.time
-            var msgCounter=binding.msgCounter
+            var msgCounter=binding.counter
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -65,8 +65,8 @@ class UserAdapter(private val list:ArrayList<UserItems>):
             {
                 Glide.with(context).asBitmap()
                     .load(Uri.parse(list[position].profilePhoto))
-                    .placeholder(R.drawable.personalphoto)
-                    .error(R.drawable.personalphoto)
+                    .placeholder(R.drawable.profile_ic)
+                    .error(R.drawable.profile_ic)
                     .into(holder.profilrPhoto)
             }
 
@@ -74,7 +74,7 @@ class UserAdapter(private val list:ArrayList<UserItems>):
         {
 
             var bundle= bundleOf("id" to list[position].id)
-           it.findNavController().navigate(R.id.action_users_to_chat,bundle)
+           it.findNavController().navigate(R.id.action_home2_to_chat,bundle)
         }
 
     }

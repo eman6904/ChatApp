@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.userInterface.ui.fragments.Home">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+   android:layout_marginEnd="@dimen/_12sdp"
+   android:layout_marginStart="@dimen/_12sdp"
+   android:layout_marginTop="@dimen/_12sdp"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="20sp"
+        android:fontFamily="@font/robot"
+        android:textColor="@color/iconsColor"
+        android:text="WhatsApp" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/iconsColor"
+        android:src="?android:attr/actionModeWebSearchDrawable" />
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/iconsColor"
+        android:src="@drawable/menu" />
+</LinearLayout>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_12sdp"
+        android:layout_gravity="center"
+        android:src="@drawable/camera_ic" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabTextColor="@color/iconsColor"
+        app:tabMode="fixed"
+        android:layout_gravity="bottom"
+        app:tabGravity="fill"
+        app:tabIndicatorHeight="@dimen/_3sdp"
+        app:tabBackground="@android:color/transparent"
+        app:tabIndicatorAnimationMode="fade"
+        app:tabIndicatorColor="@color/mainColor" />
+</LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:background="#BFBABA"
+        android:layout_height="@dimen/_1sdp">
+    </View>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:padding="@dimen/_4sdp"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

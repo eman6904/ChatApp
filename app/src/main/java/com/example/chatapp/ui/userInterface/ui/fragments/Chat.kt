@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaRecorder
 import android.net.Uri
@@ -107,6 +108,23 @@ class Chat : Fragment(R.layout.fragment_chat) {
         storage = FirebaseStorage.getInstance().reference
         val activity = activity as MainActivity
 
+
+        //////////////////////////////////////////////////////////////////////////////////
+        //to make RecyclerView scroll to the last item when the keyboard opens
+        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
+            val rect = Rect()
+            binding.root.getWindowVisibleDisplayFrame(rect)
+            val screenHeight =  binding.root.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+
+            if (keypadHeight > screenHeight * 0.15) {
+                binding.listview.postDelayed({
+                    binding.listview.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }, 100)
+            }
+        }
+
+       ////////////////////////////////////////////////////////////////////////////
         viewModel.editMode.observe(viewLifecycleOwner){ enable->
 
             if(enable){
@@ -221,7 +239,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 if (binding.messageInput.text.toString().isNotEmpty()) {
-
+                    //editText.paintFlags = editText.paintFlags and Paint.UNDERLINE_TEXT_FLAG.inv()
                     if(viewModel.editMode.value==false){
 
                         binding.micIcon.isVisible = false
@@ -272,45 +290,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             attachmentBottomSheetPopup(requireContext())
         }
         //////////////////////////////////////////////////////////////////////////////////
-//        //for delete or update msg
-//        binding.listview.onItemLongClickListener=object :AdapterView.OnItemLongClickListener{
-//            override fun onItemLongClick(
-//                p0: AdapterView<*>?,
-//                p1: View?,
-//                position: Int,
-//                p3: Long
-//            ): Boolean {
-//               if(messagesList[position].senderId==senderId)
-//               {
-//                   val alertbuilder = AlertDialog.Builder(requireContext())
-//                   val view = layoutInflater.inflate(R.layout.about_message, null)
-//                   alertbuilder.setView(view)
-//                   val alertDialog = alertbuilder.create()
-//                   alertDialog.show()
-//
-//                   val delete = view.findViewById<ImageView>(R.id.delete)
-//                   val update = view.findViewById<ImageView>(R.id.update)
-//                   val edMsg = view.findViewById<EditText>(R.id.edMsg)
-//
-//                   var message=messagesList.get(position)
-//                   edMsg.setText(message.textMsg)
-//
-//                   update.setOnClickListener()
-//                   {
-//                       message.textMsg=edMsg.text.toString()
-//                       objChat?.child(message.msgId)?.setValue(message)
-//                       alertDialog.dismiss()
-//                   }
-//                   delete.setOnClickListener(){
-//                       objChat?.child(message.msgId)?.removeValue()
-//                       alertDialog.dismiss()
-//                   }
-//               }
-//                return false
-//            }
-//
-//        }
-        ///////////////////////////////////////////////////////////////////////////////////
+
         binding.arrowBack.setOnClickListener() {
             navController.navigate(R.id.action_chat_to_users)
         }
@@ -327,7 +307,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 binding.username.text = user!!.username
                 if (isAdded) {
                     Glide.with(requireContext()).asBitmap().load(Uri.parse(user.profilePhoto))
-                        .placeholder(R.drawable.personalphotojpg).into(binding.userImage)
+                        .placeholder(R.drawable.profile_ic).into(binding.userImage)
                 }
             }
         })
@@ -401,6 +381,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        dismissPopupIfVisible()
 
         return when (item.itemId) {
             R.id.action_edit ->{

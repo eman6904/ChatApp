@@ -14,4 +14,6 @@
     <string name="about">About:</string>
     <string name="description">description</string>
     <string name="profilephoto">https://t4.ftcdn.net/jpg/00/65/77/27/360_F_65772719_A1UV5kLi5nCEWI0BNLLiFaBPEkUbv5Fv.jpg</string>
+    <string name="you_deleted_this_message">You deleted this message</string>
+    <string name="this_message_is_deleted">This message is deleted</string>
 </resources>

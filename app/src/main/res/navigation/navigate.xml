@@ -10,12 +10,6 @@
         android:name="com.example.chatapp.ui.userInterface.ui.fragments.Users"
         android:label="fragment_face"
         tools:layout="@layout/users" >
-        <action
-            android:id="@+id/action_users_to_profile3"
-            app:destination="@id/profile3" />
-        <action
-            android:id="@+id/action_users_to_chat"
-            app:destination="@id/chat" />
     </fragment>
     <fragment
         android:id="@+id/signIn"
@@ -24,6 +18,9 @@
         <action
             android:id="@+id/action_signIn_to_users"
             app:destination="@id/users" />
+        <action
+            android:id="@+id/action_signIn_to_home2"
+            app:destination="@id/home2" />
     </fragment>
     <fragment
         android:id="@+id/signUp"
@@ -51,5 +48,17 @@
         <action
             android:id="@+id/action_chat_to_users"
             app:destination="@id/users" />
+    </fragment>
+    <fragment
+        android:id="@+id/home2"
+        android:name="com.example.chatapp.ui.userInterface.ui.fragments.Home"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_home2_to_chat"
+            app:destination="@id/chat" />
+        <action
+            android:id="@+id/action_home2_to_profile3"
+            app:destination="@id/profile3" />
     </fragment>
 </navigation>
