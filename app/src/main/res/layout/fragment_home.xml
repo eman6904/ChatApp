@@ -22,7 +22,7 @@
         android:layout_weight="1"
         android:textSize="20sp"
         android:fontFamily="@font/robot"
-        android:textColor="@color/iconsColor"
+        android:textColor="@color/mainColor"
         android:text="WhatsApp" />
 
     <ImageView

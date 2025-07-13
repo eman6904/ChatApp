@@ -3,16 +3,22 @@ package com.example.chatapp.ui.userInterface.ui.adapter
 import android.app.Activity
 import android.content.Context
 import android.graphics.PorterDuff
+import android.graphics.drawable.ClipDrawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.media.MediaPlayer
+import android.os.CountDownTimer
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.compose.animation.core.animateDpAsState
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -145,7 +151,7 @@ class ChatAdapter(
                 actionBackground.isVisible = false
                 action.text = ""
             }else if( (item.deleted.sides == 1 && item.deleted.userId == FirebaseAuth.getInstance().currentUser!!.uid)) {
-                itemView.findViewById<RelativeLayout>(R.id.screen_root).isVisible = false
+                bindDeletedMessage(item)
                 actionBackground.isVisible = false
                 action.text = ""
             }else {
@@ -183,8 +189,6 @@ class ChatAdapter(
                 Glide.with(context)
                     .load(File(item.imageMsg.imageLocalPath))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.progress_animation)
-                    .error(R.drawable.progress_animation)
                     .into(itemView.findViewById(R.id.image))
             }
 
@@ -195,6 +199,7 @@ class ChatAdapter(
         }
 
         private fun bindRecordMessage(item: MessageTable) {
+
             itemView.findViewById<LinearLayout>(R.id.text_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.image_msg).isVisible = false
             itemView.findViewById<LinearLayout>(R.id.deleted_msg).isVisible = false
@@ -203,33 +208,67 @@ class ChatAdapter(
             val playIcon = itemView.findViewById<ImageView>(R.id.play_icon)
             val pauseIcon = itemView.findViewById<ImageView>(R.id.pause_icon)
             val micIcon = itemView.findViewById<ImageView>(R.id.mic_icon)
+            val timer = itemView.findViewById<TextView>(R.id.timerTextView)
             val thumbDot = itemView.findViewById<View>(R.id.thumbDot)
-            val background = thumbDot.background as GradientDrawable
+            val listenProgressView = itemView.findViewById<View>(R.id.listenedProgressView)
+            val fullProgressView = itemView.findViewById<View>(R.id.fullProgressView)
+            val thumbDotBackground = thumbDot.background as GradientDrawable
+
+
+            timer.text =if(item.recordMsg.recordLength.isNotEmpty())
+                formatDuration(item.recordMsg.recordLength.toLong()) else ""
 
             val color = if (item.recordMsg.listen) R.color.listenRecordColor else R.color.iconsColor
             listOf(playIcon, pauseIcon, micIcon).forEach {
                 it.setColorFilter(ContextCompat.getColor(context, color), PorterDuff.Mode.SRC_IN)
             }
-            background.setColor(ContextCompat.getColor(context, color))
+            thumbDotBackground.setColor(ContextCompat.getColor(context, color))
+
+            listenProgressView.setBackgroundColor(ContextCompat.getColor(context,color))
 
             if (AudioPlayerManager.currentPath == item.recordMsg.recordLocalPath) {
+
                 pauseIcon.isVisible = true
                 playIcon.isVisible = false
+
             } else {
+                thumbDot.translationX = 0f
+                val layoutParams = listenProgressView.layoutParams
+                layoutParams.width = 0
+                listenProgressView.layoutParams = layoutParams
+
                 pauseIcon.isVisible = false
                 playIcon.isVisible = true
             }
 
-            itemView.findViewById<LinearLayout>(R.id.record_msg).setOnClickListener {
-
+            itemView.findViewById<FrameLayout>(R.id.play_record).setOnClickListener {
 
                 if (AudioPlayerManager.currentPath != item.recordMsg.recordLocalPath) {
+
+                    Log.d("DEBUG",AudioPlayerManager.previusPosition.toString())
                     AudioPlayerManager.play(
                         path = item.recordMsg.recordLocalPath,
                         clearPath = {
                             notifyItemChanged(AudioPlayerManager.previusPosition!!)
+                        },
+                        onTick = { remainingMillis, progress ->
+                            (itemView.context as Activity).runOnUiThread {
+                                val remainingSecs = remainingMillis / 1000
+                                val mins = remainingSecs / 60
+                                val secs = remainingSecs % 60
+                                timer.text = String.format("%02d:%02d", mins, secs)
+
+                                val maxTranslate = fullProgressView.width - thumbDot.width
+                                val currentX = progress * maxTranslate
+                                thumbDot.translationX = currentX
+
+                                val layoutParams = listenProgressView.layoutParams
+                                layoutParams.width = currentX.toInt() + thumbDot.width / 2
+                                listenProgressView.layoutParams = layoutParams
+                            }
                         }
                     )
+
                     if (FirebaseAuth.getInstance().currentUser?.uid == item.receiverId && !item.recordMsg.listen) {
                         viewModel.updateMessage(
                             item.copy(
@@ -240,17 +279,41 @@ class ChatAdapter(
                         )
                     }
                     AudioPlayerManager.previusPosition?.let {
-                        notifyItemChanged(AudioPlayerManager.previusPosition!!)
+                        if(AudioPlayerManager.previusPosition!= adapterPosition)
+                          notifyItemChanged(AudioPlayerManager.previusPosition!!)
                     }
                     AudioPlayerManager.previusPosition = position
                     pauseIcon.isVisible = true
                     playIcon.isVisible = false
 
                 } else {
-                    pauseIcon.isVisible = false
-                    playIcon.isVisible = true
-                    AudioPlayerManager.stop()
+                    pauseIcon.isVisible = !pauseIcon.isVisible
+                    playIcon.isVisible = !playIcon.isVisible
+                    if(AudioPlayerManager.isPaused())
+                        AudioPlayerManager.resume(
+                            clearPath = {
+                                notifyItemChanged(AudioPlayerManager.previusPosition!!)
+                            },
+                            onTick = { remainingMillis, progress ->
 
+                                val remainingSecs = remainingMillis / 1000
+                                val mins = remainingSecs / 60
+                                val secs = remainingSecs % 60
+                                timer.text = String.format("%02d:%02d", mins, secs)
+
+                                val maxTranslate = fullProgressView.width - thumbDot.width
+                                val currentX = progress * maxTranslate
+
+                                thumbDot.translationX = currentX
+
+                                val layoutParams = listenProgressView.layoutParams
+                                layoutParams.width = currentX.toInt() + thumbDot.width / 2
+                                listenProgressView.layoutParams = layoutParams
+                            }
+
+                        )
+                    else
+                        AudioPlayerManager.pause()
                 }
             }
 
@@ -281,25 +344,85 @@ class ChatAdapter(
         private var mediaPlayer: MediaPlayer? = null
         var currentPath: String? = null
         var previusPosition: Int? = null
+        private var timer: CountDownTimer? = null
+        private var remainingTimeMillis: Long = 0L
 
-        fun play(path: String, clearPath: () -> Unit) {
-            mediaPlayer?.release()
+        fun play(
+            path: String,
+            clearPath: () -> Unit,
+            onTick: (millisUntilFinished: Long, progress: Float) -> Unit
+        ) {
+             stop()
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(path)
                 prepare()
                 start()
-                setOnCompletionListener {
-                    currentPath = null
-                    clearPath()
-                }
             }
             currentPath = path
+            val duration = mediaPlayer!!.duration.toLong()
+            timer = object : CountDownTimer(duration, 50) {
+                override fun onTick(millisUntilFinished: Long) {
+                    val current = mediaPlayer?.currentPosition?.toLong() ?: 0L
+                    val progress = current.toFloat() / duration
+                    onTick(duration - current, progress)
+                }
+
+                override fun onFinish() {
+                    stop()
+                    clearPath()
+                }
+
+            }.start()
+        }
+        fun resume(
+            onTick: (millisUntilFinished: Long, progress: Float) -> Unit,
+            clearPath: () -> Unit
+        ) {
+            mediaPlayer?.start()
+
+            val duration = mediaPlayer?.duration?.toLong() ?: return
+
+            timer = object : CountDownTimer(remainingTimeMillis, 50) {
+                override fun onTick(millisUntilFinished: Long) {
+                    val currentPos = mediaPlayer?.currentPosition?.toLong() ?: 0L
+                    val progress = currentPos.toFloat() / duration
+                    onTick(duration - currentPos, progress)
+                }
+
+                override fun onFinish() {
+                    stop()
+                    clearPath()
+                }
+
+            }.start()
         }
 
         fun stop() {
             mediaPlayer?.release()
             mediaPlayer = null
+            timer?.cancel()
+            timer = null
             currentPath = null
         }
+        fun pause() {
+            mediaPlayer?.pause()
+            timer?.cancel()
+            val duration = mediaPlayer?.duration?.toLong() ?: 0L
+            val current = mediaPlayer?.currentPosition?.toLong() ?: 0L
+            remainingTimeMillis = duration - current
+        }
+        fun isPaused(): Boolean {
+            return mediaPlayer?.isPlaying == false && currentPath != null
+        }
     }
+
+    fun formatDuration(seconds: Long): String {
+
+        val minutes = (seconds % 3600) / 60
+
+        val secs = seconds % 60
+
+        return String.format("%02d:%02d",minutes, secs)
+    }
+
 }

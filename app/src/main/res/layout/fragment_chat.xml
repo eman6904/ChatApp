@@ -45,27 +45,33 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:layout_height="wrap_content">
                 <ImageView
                     android:id="@+id/vedio_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:tint="@color/black"
+                    android:padding="@dimen/_2sdp"
+                    app:tint="@color/iconsColor"
+                    android:scaleX="-1"
                     android:src="@drawable/vedio_icon" />
                 <ImageView
                     android:id="@+id/call_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:tint="@color/black"
+                    app:tint="@color/iconsColor"
+                    android:padding="@dimen/_2sdp"
+                    android:scaleX="-1"
                     android:src="@drawable/call_icon" />
                 <ImageView
                     android:id="@+id/menu"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    app:tint="@color/black"
+                    app:tint="@color/iconsColor"
+                    android:padding="@dimen/_2sdp"
                     android:src="@drawable/menu" />
             </LinearLayout>
         </LinearLayout>
@@ -79,7 +85,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:stackFromBottom="true"
         android:transcriptMode="alwaysScroll"
         android:divider="@null" />
@@ -281,7 +287,7 @@
                    android:background="@android:color/transparent"
                    android:src="@drawable/mic_icon" />
                <TextView
-                   android:id="@+id/record_msg_time"
+                   android:id="@+id/timer"
                    android:layout_width="wrap_content"
                    android:layout_height="wrap_content"
                    android:layout_gravity="start|center"

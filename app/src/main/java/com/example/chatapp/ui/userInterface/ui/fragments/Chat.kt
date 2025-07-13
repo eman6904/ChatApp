@@ -16,6 +16,8 @@ import android.graphics.drawable.ColorDrawable
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -29,10 +31,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.addCallback
 import androidx.cardview.widget.CardView
+import androidx.compose.animation.core.Animation
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
@@ -70,6 +74,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -90,6 +95,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
     var receiverId: String = ""
     var myImage: String = ""
     var isUserScrolling = false
+    private var startTime: Long = 0L
+    private var recordedDuration: Long = 0L
+    private var startX = 0f
+    private val cancelThreshold = 150f
+    private lateinit var blinkAnimation:android.view.animation.Animation
+    private var timerHandler = Handler(Looper.getMainLooper())
+    private lateinit var timerRunnable: Runnable
     val viewModel: MessageViewModel by viewModels()
     companion object{
         var popupWindow: PopupWindow? = null
@@ -107,6 +119,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
         objChat = FirebaseDatabase.getInstance().getReference("Chat")
         storage = FirebaseStorage.getInstance().reference
         val activity = activity as MainActivity
+        blinkAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.blink)
 
 
         //////////////////////////////////////////////////////////////////////////////////
@@ -170,6 +183,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
         ///////////////////////////////////////////////////////////////////////////////
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
 
+            dismissPopupIfVisible()
             if(viewModel.selectedMessages.value!!.isNotEmpty()) {
 
                 viewModel.clearSelectedMessages()
@@ -187,48 +201,73 @@ class Chat : Fragment(R.layout.fragment_chat) {
         //for record message
         binding.micIcon.setOnTouchListener { v, event ->
             when (event.action) {
+
                 MotionEvent.ACTION_DOWN -> {
-                    // المستخدم بدأ يضغط
+                    startX = event.rawX
                     binding.recordingContainer.isVisible = true
                     binding.msgContainer.isVisible = false
                     startRecording(requireContext())
                     true
                 }
 
+                MotionEvent.ACTION_MOVE -> {
+                    val currentX = event.rawX
+                    val deltaX = currentX - startX
+
+                    if (deltaX < 0) {
+                        binding.micIcon.translationX = deltaX
+                    }
+
+                    true
+                }
+
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // المستخدم ساب الزر أو سحب صباعه بعيد
                     binding.recordingContainer.isVisible = false
                     binding.msgContainer.isVisible = true
-                    stopRecording()
-                    prepareMsg(
-                        msgType = "record"
-                    )
-                    uploadVoiceMessage(
-                        onSuccess = { remoteUrl ->
-                            if (msgModel != null) {
-                                msgModel!!.recordMsg = RecordModel(
-                                    msgModel!!.recordMsg.recordLocalPath,
-                                    remoteUrl,
-                                    "",
-                                    false
-                                )
-                                viewModel.insertMessage(
-                                    msg = msgModel!!
-                                )
-                            }
-                        },
-                        onFailure = {
-                            Toast.makeText(requireContext(), "فشل في الرفع", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    )
 
+                    val deltaX = event.rawX - startX
+
+                    if (deltaX < -cancelThreshold) {
+                        stopRecording()
+                        audioFile?.delete()
+                        Toast.makeText(requireContext(), "record stopped", Toast.LENGTH_SHORT).show()
+                    } else {
+                        stopRecording()
+                        prepareMsg(msgType = "record")
+
+                        uploadVoiceMessage(
+                            onSuccess = { remoteUrl ->
+                                msgModel?.let {
+                                    it.recordMsg = RecordModel(
+                                        it.recordMsg.recordLocalPath,
+                                        remoteUrl,
+                                        recordedDuration.toString(),
+                                        false
+                                    )
+
+                                    viewModel.insertMessage(msg = it)
+                                }
+                            },
+                            onFailure = {
+                                Toast.makeText(requireContext(), "failed", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+
+                    binding.micIcon.animate()
+                        .translationX(0f)
+                        .setDuration(200)
+                        .start()
+
+                    startX = 0f
                     true
                 }
 
                 else -> false
             }
         }
+
+
         ///////////////////////////////////////////////////////////////////////////////
         //for handling mic icon and send icon when write msg
         binding.messageInput.addTextChangedListener(object : TextWatcher {
@@ -362,7 +401,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
         val pos = viewModel.selectedMessages.value?.getOrNull(0)
         val currentUser = FirebaseAuth.getInstance().currentUser?.uid
 
-        if (pos != null && currentUser != null) {
+        if (pos != null && currentUser != null && viewModel.messages.value?.getOrNull(pos)?.deleted?.sides == 0) {
             val selectedMessage = viewModel.messages.value?.getOrNull(pos)
 
             if (selectedMessage != null && selectedMessage.senderId == currentUser) {
@@ -381,9 +420,11 @@ class Chat : Fragment(R.layout.fragment_chat) {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+
         dismissPopupIfVisible()
 
         return when (item.itemId) {
+
             R.id.action_edit ->{
 
                 val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -393,8 +434,11 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 viewModel.selectedMessages.value?.let { it->
 
                     val pos = it.get(0)
+
                     viewModel.setMessageForEdit(viewModel.messages.value[pos])
                     viewModel.editedMessage.value?.let { binding.messageInput.setText(it.textMsg) }
+
+                    binding.textMessageBody.text =   viewModel.editedMessage.value?.textMsg
 
                     binding.messageInput.setSelection(binding.messageInput.text.length)
                     binding.messageInput.requestFocus()
@@ -480,7 +524,10 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
                     if (messagesList.isNotEmpty()) {
                         val lastMsg = messagesList.last()
-                        setLastMsg(lastMsg.textMsg, lastMsg.time)
+                        if(lastMsg.msgType=="record")
+                           setLastMsg("record", lastMsg.time)
+                        else
+                            setLastMsg(lastMsg.textMsg, lastMsg.time)
                     }
 
                 }
@@ -674,18 +721,44 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 .show()
             return
         }
+
         val fileName = "record_${System.currentTimeMillis()}.mp3"
         audioFile = File(context.cacheDir, fileName)
 
-        mediaRecorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(audioFile!!.absolutePath)
-            prepare()
-            start()
+        try {
+            mediaRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(audioFile!!.absolutePath)
+                prepare()
+                start()
+            }
+            binding.mic3Icon.startAnimation(blinkAnimation)
+            startTime = System.currentTimeMillis()
+            startTimer()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Toast.makeText(context, "Failed to prepare the recorder", Toast.LENGTH_SHORT).show()
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+            Toast.makeText(context, "Recorder is in illegal state", Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun startTimer() {
+        timerRunnable = object : Runnable {
+            override fun run() {
+                val elapsed = (System.currentTimeMillis() - startTime) / 1000
+                val mins = elapsed / 60
+                val secs = elapsed % 60
+                binding.timer.text = String.format("%02d:%02d", mins, secs)
+                timerHandler.postDelayed(this, 1000)
+            }
+        }
+        timerHandler.post(timerRunnable)
+    }
+
 
     private fun stopRecording() {
         try {
@@ -694,8 +767,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
                 release()
             }
             mediaRecorder = null
+            recordedDuration = (System.currentTimeMillis() - startTime) / 1000
+            timerHandler.removeCallbacks(timerRunnable)
+            binding.mic3Icon.clearAnimation()
         } catch (e: Exception) {
             e.printStackTrace()
+            Toast.makeText(context, "Recorder is in illegal state", Toast.LENGTH_SHORT).show()
         }
     }
 

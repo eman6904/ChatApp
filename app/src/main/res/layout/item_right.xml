@@ -45,7 +45,7 @@
                android:textSize="16sp"/>
 
            <LinearLayout
-               android:layout_width="@dimen/_80sdp"
+               android:layout_width="@dimen/_90sdp"
                android:layout_gravity="right"
                android:gravity="center|end"
                android:padding="@dimen/_4sdp"
@@ -153,14 +153,13 @@
                android:layout_height="wrap_content"
                android:orientation="horizontal"
                android:gravity="right"
-               android:padding="@dimen/_4sdp"
-               android:layout_weight="1">
+               android:padding="@dimen/_2sdp">
                <TextView
                    android:id="@+id/image_msg_time"
                    android:layout_width="wrap_content"
                    android:layout_height="wrap_content"
-                   android:layout_weight="1"
                    android:gravity="center|right"
+                   android:textSize="@dimen/_8sdp"
                    android:textColor="@color/rightSecondaryColor"
                    android:layout_marginEnd="@dimen/_10sdp"
                    android:text="8:40 pm" />
@@ -193,7 +192,7 @@
                    android:layout_width="@dimen/_37sdp"
                    android:layout_height="@dimen/_37sdp"
                    android:layout_gravity="center"
-                   android:src="@drawable/personalphotojpg" />
+                   android:src="@drawable/profile_ic" />
                <ImageView
                    android:id="@+id/mic_icon"
                    android:layout_width="@dimen/_22sdp"
@@ -235,24 +234,33 @@
                            android:src="@drawable/play_icon" />
                    </FrameLayout>
                    <FrameLayout
+                       android:id="@+id/progressLayout"
                        android:layout_width="match_parent"
                        android:layout_height="wrap_content"
                        android:layout_margin="@dimen/_6sdp">
-                       <ProgressBar
-                           android:id="@+id/voiceProgressBar"
-                           style="@android:style/Widget.ProgressBar.Horizontal"
+                       <View
+                           android:id="@+id/fullProgressView"
                            android:layout_width="match_parent"
+                           android:layout_gravity="center"
                            android:layout_height="@dimen/_2sdp"
-                           android:layout_margin="@dimen/_4sdp"
-                           android:progress="0"
-                           android:max="100"
-                           android:progressDrawable="@drawable/right_progress_drawable" />
+                           android:layout_centerVertical="true"
+                           android:background="#D3D3D3" />
+
+                       <View
+                           android:id="@+id/listenedProgressView"
+                           android:layout_width="0dp"
+                           android:layout_gravity="center|start"
+                           android:layout_height="@dimen/_2sdp"
+                           android:layout_centerVertical="true"
+                           android:background="@color/iconsColor" />
+
                        <View
                            android:id="@+id/thumbDot"
                            android:layout_width="@dimen/_8sdp"
                            android:layout_height="@dimen/_8sdp"
                            android:layout_gravity="center|start"
                            android:background="@drawable/circle" />
+
                    </FrameLayout>
                </LinearLayout>
                <LinearLayout
@@ -263,10 +271,11 @@
                    android:layout_alignParentBottom="true"
                    android:orientation="horizontal">
                    <TextView
-                       android:id="@+id/counter"
+                       android:id="@+id/timerTextView"
                        android:layout_width="wrap_content"
                        android:layout_height="wrap_content"
                        android:layout_weight="1"
+                       android:textSize="@dimen/_8sdp"
                        android:gravity="center|right"
                        android:textColor="@color/rightSecondaryColor"
                        android:layout_marginEnd="@dimen/_10sdp"
