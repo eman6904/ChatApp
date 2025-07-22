@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.chatapp.ui.userInterface.localData.messages.dao.MessageDAO
 import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTable
 
-@Database(entities = [MessageTable::class], version = 2, exportSchema = false)
+@Database(entities = [MessageTable::class], version = 1, exportSchema = false)
 abstract class MessageDatabase : RoomDatabase()
 {
     abstract fun messageDao(): MessageDAO

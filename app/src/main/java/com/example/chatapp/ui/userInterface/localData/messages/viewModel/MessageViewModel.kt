@@ -3,6 +3,7 @@ package com.example.chatapp.ui.userInterface.localData.messages.viewModel
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,10 +14,10 @@ import com.example.chatapp.ui.userInterface.localData.messages.table.MessageTabl
 import com.example.chatapp.ui.userInterface.localData.networkMenitor.NetworkMonitor
 import com.example.chatapp.ui.userInterface.ui.model.ImageModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -79,18 +80,21 @@ class MessageViewModel(application: Application) : AndroidViewModel(application)
         messageRepo.insertMessage(msg)
     }
 
-    fun updateMessage(msg: MessageTable) = viewModelScope.launch {
+    fun updateMessages(messages: List<MessageTable>) = viewModelScope.launch {
 
-        messageRepo.updateMessage(msg)
+        messageRepo.updateMessages(messages)
     }
-    fun setMessageForEdit(msg:MessageTable){
+
+    fun setMessageForEdit(msg: MessageTable) {
 
         _editedMessage.value = msg
     }
-    fun setEditMode(enable:Boolean){
+
+    fun setEditMode(enable: Boolean) {
 
         _editMode.value = enable
     }
+
     fun addPosition(pos: Int) {
         val currentList = _selectedMessages.value ?: ArrayList()
         if (currentList.contains(pos)) {
@@ -113,103 +117,104 @@ class MessageViewModel(application: Application) : AndroidViewModel(application)
         _selectedMessages.value = ArrayList()
     }
 
-    fun uploadPendingMessages() = viewModelScope.launch {
+    fun uploadMessage(message: MessageTable) = viewModelScope.launch {
 
-        for (message in messages.value!!) {
-
-            FirebaseDatabase.getInstance().getReference("Chat")
-                .child(message.msgId)
-                .setValue(message)
-                .addOnSuccessListener {
-                    viewModelScope.launch {
-
-                    }
-                }
-        }
+        FirebaseDatabase.getInstance().getReference("Chat")
+            .child(message.msgId)
+            .setValue(message)
+            .addOnSuccessListener {}.addOnFailureListener {
+                Toast.makeText(getApplication(),"Something wrong occur",Toast.LENGTH_SHORT).show()
+            }
     }
 
     fun downloadMessagesFromFirebase() {
         val dbRef = FirebaseDatabase.getInstance().getReference("Chat")
+        dbRef.orderByChild("timestamp")
+            .addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    val message = snapshot.getValue(MessageTable::class.java)
+
+                    message?.let { manageMessages(it) }
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    val updatedMessage = snapshot.getValue(MessageTable::class.java)
+                    updatedMessage?.let { manageMessages(it) }                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    val deletedMessage = snapshot.getValue(MessageTable::class.java)
+                    // إحذف الرسالة من Room
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            })
+
+    }
+
+     fun manageMessages(msg: MessageTable) = viewModelScope.launch {
+        val messagesToInsert = mutableListOf<MessageTable>()
+        val downloadJobs = mutableListOf<Deferred<Boolean>>()
         val applicationContext = getApplication<Application>()
         val currentUserId = FirebaseAuth.getInstance()?.currentUser!!.uid
-
-        dbRef.orderByChild("timestamp")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    viewModelScope.launch {
-                        val messagesToInsert = mutableListOf<MessageTable>()
-                        val downloadJobs = mutableListOf<Deferred<Boolean>>()
-
-                        for (snap in snapshot.children) {
-                            val msg = snap.getValue(MessageTable::class.java)
-
-                            if (msg != null&&(msg.receiverId==currentUserId||msg.senderId==currentUserId)) {
-                                val canInsertResult = canInsert(msg)
-
-                                if (canInsertResult) {
-                                    val job = async {
-                                        when (msg.msgType) {
-                                            "image" -> {
-                                                val localPath = downloadFileFromUrlAndSaveLocally(
-                                                    context = applicationContext,
-                                                    fileUrl = msg.imageMsg.imageRemoteUrl,
-                                                    msg = msg
-                                                )
-                                                localPath?.let {
-                                                    messagesToInsert.add(
-                                                        msg.copy(
-                                                            imageMsg = ImageModel(
-                                                                imageLocalPath = localPath,
-                                                                imageRemoteUrl = msg.imageMsg.imageRemoteUrl
-                                                            )
-                                                        )
-                                                    )
-                                                }
-                                            }
-
-                                            "record" -> {
-                                                val localPath = downloadFileFromUrlAndSaveLocally(
-                                                    context = applicationContext,
-                                                    fileUrl = msg.recordMsg.recordRemoteUrl,
-                                                    msg = msg
-                                                )
-                                                localPath?.let {
-                                                    messagesToInsert.add(
-                                                        msg.copy(
-                                                            recordMsg = msg.recordMsg.copy(
-                                                                recordLocalPath = localPath
-                                                            )
-                                                        )
-                                                    )
-                                                }
-                                            }
-
-                                            else -> {
-                                                messagesToInsert.add(msg)
-                                            }
-                                        }
-                                        true
-                                    }
-                                    downloadJobs.add(job)
-                                }
+        if (msg != null && (msg.receiverId == currentUserId || msg.senderId == currentUserId)) {
+            val canInsertResult = canInsert(msg)
+            if (canInsertResult) {
+                Log.d("MESSAGE", msg!!.textMsg.toString())
+                val job = async {
+                    when (msg.msgType) {
+                        "image" -> {
+                            val localPath = downloadFileFromUrlAndSaveLocally(
+                                context = applicationContext,
+                                fileUrl = msg.imageMsg.imageRemoteUrl,
+                                msg = msg
+                            )
+                            localPath?.let {
+                                messagesToInsert.add(
+                                    msg.copy(
+                                        imageMsg = ImageModel(
+                                            imageLocalPath = localPath,
+                                            imageRemoteUrl = msg.imageMsg.imageRemoteUrl
+                                        )
+                                    )
+                                )
                             }
                         }
 
-                        downloadJobs.awaitAll()
+                        "record" -> {
+                            val localPath = downloadFileFromUrlAndSaveLocally(
+                                context = applicationContext,
+                                fileUrl = msg.recordMsg.recordRemoteUrl,
+                                msg = msg
+                            )
+                            localPath?.let {
+                                messagesToInsert.add(
+                                    msg.copy(
+                                        recordMsg = msg.recordMsg.copy(
+                                            recordLocalPath = localPath
+                                        )
+                                    )
+                                )
+                            }
+                        }
 
-                        if (messagesToInsert.isNotEmpty()) {
-                            messageRepo.insertMessages(messagesToInsert)
+                        else -> {
+                            messagesToInsert.add(msg)
                         }
                     }
+                    true
                 }
+                downloadJobs.add(job)
+            }
+        }
 
+        downloadJobs.awaitAll()
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("Firebase", "Error: ${error.message}")
-                }
-            })
+        if (messagesToInsert.isNotEmpty())
+        {
+            messageRepo.insertMessages(messagesToInsert)
+        }
     }
-
     private suspend fun downloadFileFromUrlAndSaveLocally(
         context: Context,
         fileUrl: String,

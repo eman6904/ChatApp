@@ -36,10 +36,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.addCallback
 import androidx.cardview.widget.CardView
-import androidx.compose.animation.core.Animation
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -64,14 +62,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -130,7 +121,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             val screenHeight =  binding.root.rootView.height
             val keypadHeight = screenHeight - rect.bottom
 
-            if (keypadHeight > screenHeight * 0.15) {
+            if (keypadHeight > screenHeight * 0.15 && chatAdapter.itemCount>0) {
                 binding.listview.postDelayed({
                     binding.listview.smoothScrollToPosition(chatAdapter.itemCount - 1)
                 }, 100)
@@ -246,6 +237,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
                                     )
 
                                     viewModel.insertMessage(msg = it)
+
+                                    if (viewModel.isConnected.value == true) {
+
+                                        viewModel.uploadMessage(msgModel!!)
+
+                                    }
                                 }
                             },
                             onFailure = {
@@ -367,8 +364,8 @@ class Chat : Fragment(R.layout.fragment_chat) {
                     viewModel.insertMessage(msgModel!!)
                     if (viewModel.isConnected.value == true) {
 
-                        viewModel.uploadPendingMessages()
-                        viewModel.downloadMessagesFromFirebase()
+                        viewModel.uploadMessage(msgModel!!)
+
                     }
                     binding.messageInput.setText("")
                 }
@@ -384,7 +381,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
                 if (updatedMessage != null && position != null) {
 
-                    viewModel.updateMessage(updatedMessage)
+                    viewModel.updateMessages(listOf(updatedMessage))
+
+                    if (viewModel.isConnected.value == true) {
+
+                        viewModel.uploadMessage(updatedMessage)
+
+                    }
                     chatAdapter.notifyItemChanged(position)
 
                     binding.messageInput.setText("")
@@ -465,14 +468,13 @@ class Chat : Fragment(R.layout.fragment_chat) {
         chatAdapter = ChatAdapter(requireContext(), messagesList, viewModel)
         chatAdapter.setOnClickListener(object : ChatAdapter.OnClickListener {
             override fun onClick(position: Int, model: MessageTable) {
-                // هنا تعملي اللي عايزاه عند الضغط العادي
-                Log.d("press","onclick")
+
                 dismissPopupIfVisible()
             }
 
             override fun onLongClick(view: View,position: Int, model: MessageTable) {
                 dismissPopupIfVisible()
-                if(isAdded){
+                if(isAdded&&viewModel.messages.value[position].deleted.sides==0){
                     showReactionPopup(
                         anchorView = view,
                         context = requireContext(),
@@ -480,9 +482,17 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
                             var action = if(selectedReaction==viewModel.messages.value[position].action) "" else selectedReaction
 
-                            viewModel.updateMessage(viewModel.messages.value[position].copy(
+                            viewModel.updateMessages(
+                                listOf( viewModel.messages.value[position].copy(
                                 action = action
-                            ))
+                            )))
+                            if (viewModel.isConnected.value == true) {
+
+                                viewModel.uploadMessage(viewModel.messages.value[position].copy(
+                                    action = action
+                                ))
+
+                            }
                             viewModel.removePosition(position)
 
                         }
@@ -496,11 +506,12 @@ class Chat : Fragment(R.layout.fragment_chat) {
 
         lifecycleScope.launchWhenStarted {
             viewModel.messages.collect { messages ->
-                viewModel.uploadPendingMessages()
+
                 val filteredMessages = messages.filter { msg ->
                     (msg.senderId == senderId && msg.receiverId == receiverId) ||
                             (msg.senderId == receiverId && msg.receiverId == senderId)
                 }
+
                 if (isAdded) {
                     val oldMessages = messagesList
                     val newMessagesList = filteredMessages
@@ -624,10 +635,14 @@ class Chat : Fragment(R.layout.fragment_chat) {
                         if (msgModel != null) {
                             msgModel!!.imageMsg.imageRemoteUrl = uri.toString()
                             viewModel.insertMessage(msgModel!!)
+                            if (viewModel.isConnected.value == true) {
+
+                                viewModel.uploadMessage(msgModel!!)
+
+                            }
                         }
 
                     }
-                    // Toast.makeText(requireContext(),"Image uploaded successfully",Toast.LENGTH_LONG).show()
 
                 }?.addOnFailureListener() {
                     Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
@@ -790,6 +805,7 @@ class Chat : Fragment(R.layout.fragment_chat) {
             viewModel.insertMessage(
                 msgModel!!
             )
+
         }
         voiceRef.putFile(uri)
             .addOnSuccessListener {
@@ -842,19 +858,16 @@ class Chat : Fragment(R.layout.fragment_chat) {
             popupWindow?.dismiss()
         }
 
-        // قياس الـ popup عشان نعرف أبعاده
         popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val popupWidth = popupView.measuredWidth
         val popupHeight = popupView.measuredHeight
 
-        // تحديد مكان العنصر اللي ضغط عليه المستخدم
         val location = IntArray(2)
         anchorView.getLocationOnScreen(location)
         val anchorX = location[0]
         val anchorY = location[1]
         val anchorWidth = anchorView.width
 
-        // نعرض البوب أب فوق الرسالة وفي نصها
         popupWindow?.showAtLocation(
             anchorView,
             Gravity.NO_GRAVITY,
@@ -919,34 +932,39 @@ class Chat : Fragment(R.layout.fragment_chat) {
         }
     }
 
-    private fun deleteMessages(sides:Int){
+    private fun deleteMessages(sides: Int) {
+        val selectedPositions = viewModel.selectedMessages.value
+        val messagesList = viewModel.messages.value?.toMutableList() ?: return
         lifecycleScope.launch {
-            val selectedPositions = viewModel.selectedMessages.value
-            val messagesList = viewModel.messages.value
+            val updatedMessages = mutableListOf<MessageTable>()
+            if (selectedPositions != null) {
+                for (pos in selectedPositions) {
 
-            coroutineScope {
-                val deferreds = selectedPositions?.mapNotNull { pos ->
-                    if (pos in messagesList.indices) {
-                        async {
-                            val updatedMessage = messagesList[pos].copy(deleted = DeletedMessageModel(
-                                sides = sides,
-                                userId = FirebaseAuth.getInstance()?.currentUser!!.uid))
-                            viewModel.updateMessage(updatedMessage)
-                            withContext(Dispatchers.Main) {
-                                chatAdapter.notifyItemChanged(pos)
-                            }
-                        }
-                    } else {
-                        null
+                    val message = messagesList[pos]
+                    val updatedMessage = message.copy(
+                        deleted = DeletedMessageModel(
+                            sides = sides,
+                            userId = FirebaseAuth.getInstance().currentUser?.uid!!
+                        )
+                    )
+                    updatedMessages.add(updatedMessage)
+
+                    viewModel.updateMessages(listOf(updatedMessage))
+
+                    if (viewModel.isConnected.value == true) {
+
+                        viewModel.uploadMessage(updatedMessage)
+
                     }
-                } ?: emptyList()
+                    viewModel.removePosition(pos)
 
-                deferreds.awaitAll()
+                    chatAdapter.notifyItemChanged(pos)
+                }
+
             }
-
-            viewModel.clearSelectedMessages()
         }
     }
+
 
 }
 

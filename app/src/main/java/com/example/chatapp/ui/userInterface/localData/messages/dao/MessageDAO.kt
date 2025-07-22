@@ -21,13 +21,14 @@ interface MessageDAO {
     fun getMessages(): Flow<List<MessageTable>>
 
     @Update
-    suspend fun updateMessage(message: MessageTable)
+    suspend fun updateMessages(messages: List<MessageTable>)
 
     @Query("SELECT EXISTS(SELECT 1 FROM MessageTable WHERE msgId = :msgId)")
     suspend fun existsByMsgId(msgId: String): Boolean
 
-    @Query("SELECT * FROM MessageTable WHERE msgId = :id LIMIT 1")
+    @Query("SELECT * FROM MessageTable WHERE msgId = :id")
     suspend fun getMessageById(id: String): MessageTable?
+
 
 
 

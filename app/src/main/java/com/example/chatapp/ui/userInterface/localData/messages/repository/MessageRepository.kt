@@ -15,8 +15,8 @@ class MessageRepository(private val messageDao: MessageDAO) {
     suspend fun insertMessages(messages: List<MessageTable>) {
         messageDao.insertMessages(messages)
     }
-    suspend fun updateMessage(message: MessageTable){
-        messageDao.updateMessage(message)
+    suspend fun updateMessages(messages: List<MessageTable>){
+        messageDao.updateMessages(messages)
     }
     suspend fun existsByMsgId(msgId: String):Boolean{
         return messageDao.existsByMsgId(msgId)
@@ -25,6 +25,7 @@ class MessageRepository(private val messageDao: MessageDAO) {
     suspend fun getMessageById(id: String): MessageTable? {
         return messageDao.getMessageById(id)
     }
+
 
 
 }

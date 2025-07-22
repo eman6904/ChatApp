@@ -67,7 +67,7 @@ class ChatAdapter(
 
             if (adapterPosition != RecyclerView.NO_POSITION) {
 
-                if (viewModel.selectedMessages.value!!.isNotEmpty()) {
+                if (viewModel.selectedMessages.value!!.isNotEmpty()&&viewModel.messages.value[adapterPosition].deleted.sides==0) {
 
                     viewModel.addPosition(adapterPosition)
                     notifyItemChanged(adapterPosition)
@@ -81,7 +81,8 @@ class ChatAdapter(
 
             val adapterPosition = holder.bindingAdapterPosition
 
-            if (adapterPosition != RecyclerView.NO_POSITION && viewModel.selectedMessages.value!!.isEmpty()) {
+            if (adapterPosition != RecyclerView.NO_POSITION && viewModel.selectedMessages.value!!.isEmpty()&&
+                viewModel.messages.value[adapterPosition].deleted.sides==0) {
 
                 viewModel.addPosition(adapterPosition)
 
@@ -270,13 +271,20 @@ class ChatAdapter(
                     )
 
                     if (FirebaseAuth.getInstance().currentUser?.uid == item.receiverId && !item.recordMsg.listen) {
-                        viewModel.updateMessage(
-                            item.copy(
+                        viewModel.updateMessages(
+                            listOf(item.copy(
                                 recordMsg = item.recordMsg.copy(
                                     listen = true
                                 )
-                            )
+                            ))
                         )
+                        if(viewModel.isConnected.value==true){
+                            viewModel.uploadMessage(item.copy(
+                                recordMsg = item.recordMsg.copy(
+                                    listen = true
+                                )
+                            ))
+                        }
                     }
                     AudioPlayerManager.previusPosition?.let {
                         if(AudioPlayerManager.previusPosition!= adapterPosition)
